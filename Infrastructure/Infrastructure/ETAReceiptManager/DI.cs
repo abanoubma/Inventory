@@ -1,4 +1,5 @@
 using Application.Common.Services.ETAReceiptManager;
+using ETA.eReceipt.IntegrationToolkit;
 using ETA.eReceipt.IntegrationToolkit.Application.Services;
 using ETA.eReceipt.IntegrationToolkit.Infrastructure.Services;
 using Infrastructure.ETAReceiptManager.Configuration;
@@ -11,15 +12,10 @@ public static class DI
 {
     public static IServiceCollection RegisterETAReceiptManager(this IServiceCollection services, IConfiguration configuration)
     {
-        // Register configuration
-        services.Configure<ETAToolkitConfiguration>(
-            configuration.GetSection(ETAToolkitConfiguration.SectionName));
+        // Use ONLY the toolkit's registration - it handles everything
+        services.AddToolkit(configuration, ServiceLifetime.Scoped);
 
-        // Register ETA Toolkit services as per official documentation
-        services.AddSingleton<IToolkitHandler, ToolkitHandler>();
-        services.AddSingleton<IJsonHelper, JsonHelper>();
-        
-        // Register our application service
+        // Register our application service only
         services.AddScoped<IETAReceiptService, ETAReceiptService>();
 
         return services;

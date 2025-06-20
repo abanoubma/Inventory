@@ -18,74 +18,133 @@ public class ETATestController : ControllerBase
         _mediator = mediator;
     }
 
-    [HttpPost("initialize")]
-    public async Task<IActionResult> TestInitialize()
+    [HttpPost("test-credentials")]
+    public async Task<IActionResult> TestCredentials()
     {
         try
         {
-            var result = await _mediator.Send(new InitializeETARequest());
-            return Ok(new { Status = "Success", Data = result.Data });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { Status = "Error", Message = ex.Message });
-        }
-    }
-
-    [HttpPost("authenticate")]
-    public async Task<IActionResult> TestAuthenticate()
-    {
-        try
-        {
-            var result = await _mediator.Send(new AuthenticateETARequest());
-            return Ok(new { Status = "Success", Data = result.Data });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { Status = "Error", Message = ex.Message });
-        }
-    }
-
-    [HttpPost("refresh-cache")]
-    public async Task<IActionResult> TestRefreshCache()
-    {
-        try
-        {
-            var result = await _mediator.Send(new RefreshCacheRequest());
-            return Ok(new { Status = "Success", Data = result.Data });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { Status = "Error", Message = ex.Message });
-        }
-    }
-
-    [HttpPost("full-test")]
-    public async Task<IActionResult> FullTest()
-    {
-        try
-        {
-            // Test initialization
+            // Test initialization with the credentials from screenshot
             var initResult = await _mediator.Send(new InitializeETARequest());
             
+            if (initResult.Data == null)
+            {
+                return BadRequest(new { Status = "Error", Message = "Initialize failed - no response data" });
+            }
+
             // Test authentication
             var authResult = await _mediator.Send(new AuthenticateETARequest());
             
-            // Test cache refresh
-            var cacheResult = await _mediator.Send(new RefreshCacheRequest());
-            
+            if (authResult.Data == null)
+            {
+                return BadRequest(new { Status = "Error", Message = "Authentication failed - no response data" });
+            }
+
             return Ok(new { 
                 Status = "Success", 
-                Tests = new {
-                    Initialize = initResult.Data,
-                    Authenticate = authResult.Data,
-                    RefreshCache = cacheResult.Data
+                Message = "Credentials from screenshot are working!",
+                Initialize = new {
+                    Code = initResult.Data.Code,
+                    Message = initResult.Data.Message
+                },
+                Authenticate = new {
+                    Code = authResult.Data.Code,
+                    Message = authResult.Data.Message
                 }
             });
         }
         catch (Exception ex)
         {
-            return BadRequest(new { Status = "Error", Message = ex.Message });
+            return BadRequest(new { 
+                Status = "Error", 
+                Message = ex.Message,
+                Details = ex.InnerException?.Message 
+            });
         }
+    }
+
+    [HttpPost("full-workflow-test")]
+    public async Task<IActionResult> FullWorkflowTest()
+    {
+        try
+        {
+            var results = new Dictionary<string, object>();
+
+            // 1. Initialize
+            var initResult = await _mediator.Send(new InitializeETARequest());
+            results.Add("Initialize", new { 
+                Code = initResult.Data?.Code, 
+                Message = initResult.Data?.Message,
+                Success = IsSuccess(initResult.Data?.Code)
+            });
+
+            // 2. Authenticate
+            var authResult = await _mediator.Send(new AuthenticateETARequest());
+            results.Add("Authenticate", new { 
+                Code = authResult.Data?.Code, 
+                Message = authResult.Data?.Message,
+                Success = IsSuccess(authResult.Data?.Code)
+            });
+
+            // 3. Refresh Cache
+            var cacheResult = await _mediator.Send(new RefreshCacheRequest());
+            results.Add("RefreshCache", new { 
+                Code = cacheResult.Data?.Code, 
+                Message = cacheResult.Data?.Message,
+                Success = IsSuccess(cacheResult.Data?.Code)
+            });
+
+            // 4. Test UUID Generation (with sample receipt JSON)
+            try
+            {
+                var sampleReceiptJson = """
+                {
+                    "receiptType": "R",
+                    "header": {
+                        "dateTimeIssued": "2024-01-15T10:30:00Z",
+                        "receiptNumber": "REC001"
+                    }
+                }
+                """;
+
+                var uuidResult = await _mediator.Send(new GenerateUuidRequest 
+                { 
+                    ReceiptJson = sampleReceiptJson 
+                });
+                results.Add("GenerateUUID", new { 
+                    Code = uuidResult.Data?.Code, 
+                    HasUUID = !string.IsNullOrEmpty(uuidResult.Data?.UpdatedReceiptJson?.ToString()),
+                    Success = IsSuccess(uuidResult.Data?.Code)
+                });
+            }
+            catch (Exception ex)
+            {
+                results.Add("GenerateUUID", new { Error = ex.Message });
+            }
+
+            return Ok(new { 
+                Status = "Workflow Test Complete", 
+                Results = results,
+                OverallSuccess = results.Values.All(r => 
+                {
+                    if (r.GetType().GetProperty("Success") != null)
+                        return (bool)r.GetType().GetProperty("Success")!.GetValue(r)!;
+                    return r.GetType().GetProperty("Error") == null;
+                })
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { 
+                Status = "Workflow Test Failed", 
+                Message = ex.Message 
+            });
+        }
+    }
+
+    private static bool IsSuccess(string? code)
+    {
+        return string.IsNullOrEmpty(code) || 
+               code == "0" || 
+               code.Equals("success", StringComparison.OrdinalIgnoreCase);
     }
 } 

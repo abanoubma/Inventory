@@ -14,8 +14,8 @@ public class ETACredentials
     public string ClientId { get; set; } = string.Empty;
     public string ClientSecret { get; set; } = string.Empty;
     public string PosSerial { get; set; } = string.Empty;
-    public string PosOsVersion { get; set; } = "Windows";
-    public string PosModelFramework { get; set; } = ".NET 9.0";
+    public string PosOsVersion { get; set; } = "Windows"; // Can be "linux-based" as shown
+    public string PosModelFramework { get; set; } = string.Empty;
     public string PresharedKey { get; set; } = string.Empty;
 }
 
