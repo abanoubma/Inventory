@@ -1,6 +1,7 @@
 using ASPNET.BackEnd;
 using ASPNET.BackEnd.Common.Middlewares;
 using ASPNET.FrontEnd;
+using ETA.eReceipt.IntegrationToolkit;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,9 +21,20 @@ app.RegisterBackEndBuilder(app.Environment, app, builder.Configuration);
 
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Error");
+    app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
+else
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+// Add ETA Toolkit SQLite migration (Official method)
+//app.MigrateToolkitLocalStorage();
+
+app.UseHttpsRedirection();
+app.UseStaticFiles();
 
 app.UseRouting();
 app.UseCors();
@@ -33,5 +45,10 @@ app.MapStaticAssets();
 
 app.MapFrontEndRoutes();
 app.MapBackEndRoutes();
+
+// Configure routes
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();

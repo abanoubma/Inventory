@@ -16,13 +16,12 @@ public static class DependencyInjection
         //>>> FluentValidation
         services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
-        //>>> MediatR
-        services.AddMediatR(x =>
-        {
-            x.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
-            x.AddBehavior(typeof(IPipelineBehavior<,>), typeof(LoggingBehaviour<,>));
-            x.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehaviour<,>));
-        });
+        //>>> MediatR v9.0 Registration
+        services.AddMediatR(Assembly.GetExecutingAssembly());
+        
+        //>>> MediatR Behaviors v9.0 Registration
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehaviour<,>));
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehaviour<,>));
 
         //>>> Register services in Application.Features 
         var assembly = Assembly.GetExecutingAssembly();

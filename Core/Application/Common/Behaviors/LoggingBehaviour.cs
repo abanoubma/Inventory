@@ -12,23 +12,20 @@ public class LoggingBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest,
         _logger = logger;
     }
 
-    public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
+    public async Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<TResponse> next)
     {
         var requestName = typeof(TRequest).Name;
 
         try
         {
-            _logger.LogInformation($"Try executing {requestName} at {DateTime.UtcNow.ToString()}");
+            _logger.LogInformation($"Try executing {requestName} at {DateTime.UtcNow}");
 
             return await next();
         }
         catch (Exception ex)
         {
-
-            _logger.LogError(ex, $"Error executing {requestName} at {DateTime.UtcNow.ToString()}");
-
+            _logger.LogError(ex, $"Error executing {requestName} at {DateTime.UtcNow}");
             throw;
         }
     }
 }
-
