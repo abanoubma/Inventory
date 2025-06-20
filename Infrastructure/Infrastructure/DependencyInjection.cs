@@ -6,6 +6,7 @@ using Infrastructure.LogManager.Serilogs;
 using Infrastructure.SecurityManager.AspNetIdentity;
 using Infrastructure.SecurityManager.Tokens;
 using Infrastructure.SeedManager;
+using Infrastructure.ETAReceiptManager;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -34,7 +35,7 @@ public static class DependencyInjection
         //>>> Demo Seed Manager
         services.RegisterDemoSeedManager(configuration);
 
-        //>>> DeletedById Manager
+        //>>> Email Manager
         services.RegisterEmailManager(configuration);
 
         //>>> FileDocumentManager
@@ -42,6 +43,9 @@ public static class DependencyInjection
 
         //>>> FileImageManager
         services.RegisterFileImageManager(configuration);
+
+        //>>> ETA Receipt Manager
+        services.RegisterETAReceiptManager(configuration);
 
         return services;
     }
