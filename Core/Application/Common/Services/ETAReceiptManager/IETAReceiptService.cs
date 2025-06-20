@@ -22,5 +22,5 @@ public interface IETAReceiptService
     // Task<GetRecentReceiptsResponseDto> GetRecentReceiptsAsync(GetRecentReceiptsRequestDto request);
     // Task<RequestReceiptPackageResponseDto> RequestReceiptPackageAsync(RequestReceiptPackageRequestDto request);
     // Task<GetPackageRequestsResponseDto> GetPackageRequestsAsync();
-    Task<IActionResult> GetReceiptPackageAsync(string packageId);
+   // Task<IActionResult> GetReceiptPackageAsync(string packageId);
 } 
