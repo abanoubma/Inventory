@@ -18,7 +18,8 @@ public static class DependencyInjection
 
         //>>> MediatR v9.0 Registration
         services.AddMediatR(Assembly.GetExecutingAssembly());
-        
+      
+
         //>>> MediatR Behaviors v9.0 Registration
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehaviour<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehaviour<,>));

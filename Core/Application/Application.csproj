@@ -7,14 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Features\ETAReceiptManager\Queries\GetPackageRequests.cs" />
-    <Compile Remove="Features\ETAReceiptManager\Queries\GetReceipt.cs" />
-    <Compile Remove="Features\ETAReceiptManager\Queries\GetReceiptDetails.cs" />
-    <Compile Remove="Features\ETAReceiptManager\Queries\GetReceiptDetailsAnonymously.cs" />
-    <Compile Remove="Features\ETAReceiptManager\Queries\GetReceiptPackage.cs" />
-    <Compile Remove="Features\ETAReceiptManager\Queries\GetReceiptSubmission.cs" />
-    <Compile Remove="Features\ETAReceiptManager\Queries\GetRecentReceipts.cs" />
-    <Compile Remove="Features\ETAReceiptManager\Queries\RequestReceiptPackage.cs" />
+    <Compile Remove="Common\Services\ETAReceiptManager\IETAReceiptService.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -23,11 +16,16 @@
 
     <ItemGroup>
         <PackageReference Include="AutoMapper" Version="13.0.1" />
-        <PackageReference Include="ETA.eReceipt.IntegrationToolkit" Version="3.1.0" />
         <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.11.0" />
         <PackageReference Include="MediatR" Version="9.0.0" />
+        <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="9.0.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.Abstractions" Version="2.3.0" />
         <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.0" />
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Features\ETAReceiptManager\" />
     </ItemGroup>
 
 </Project>

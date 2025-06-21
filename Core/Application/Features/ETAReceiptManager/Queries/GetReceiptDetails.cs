@@ -1,44 +1,73 @@
-//using Application.Common.Services.ETAReceiptManager;
-//using ETA.eReceipt.IntegrationToolkit.Application.Dtos;
-//using FluentValidation;
-//using MediatR;
+using Application.Common.DTOs.ETAReceiptDetails;
+using Application.Common.Services.ETAReceiptManager;
+using FluentValidation;
+using MediatR;
 
-//namespace Application.Features.ETAReceiptManager.Queries;
+namespace Application.Features.ETAReceiptManager.Queries;
 
-//public class GetReceiptDetailsResult
-//{
-//    public GetReceiptDetailsResponseDto? Data { get; set; }
-//}
+public class GetReceiptDetailsResult
+{
+    public GetReceiptDetailsResponseDto? Data { get; set; }
+    public bool IsSuccess { get; set; }
+    public string? ErrorMessage { get; set; }
+}
 
-//public class GetReceiptDetailsRequest : IRequest<GetReceiptDetailsResult>
-//{
-//    public string? ReceiptId { get; init; }
-//}
+public class GetReceiptDetailsRequest : IRequest<GetReceiptDetailsResult>
+{
+    public string Uuid { get; init; } = string.Empty;
+    public string AccessToken { get; init; } = string.Empty;
+    public DateTime? DateTimeIssued { get; init; }
+}
 
-//public class GetReceiptDetailsValidator : AbstractValidator<GetReceiptDetailsRequest>
-//{
-//    public GetReceiptDetailsValidator()
-//    {
-//        RuleFor(x => x.ReceiptId).NotEmpty().WithMessage("Receipt ID is required");
-//    }
-//}
+public class GetReceiptDetailsValidator : AbstractValidator<GetReceiptDetailsRequest>
+{
+    public GetReceiptDetailsValidator()
+    {
+        RuleFor(x => x.Uuid)
+            .NotEmpty()
+            .WithMessage("Receipt UUID is required");
 
-//public class GetReceiptDetailsHandler : IRequestHandler<GetReceiptDetailsRequest, GetReceiptDetailsResult>
-//{
-//    private readonly IETAReceiptService _etaReceiptService;
+        RuleFor(x => x.AccessToken)
+            .NotEmpty()
+            .WithMessage("Access token is required");
+    }
+}
 
-//    public GetReceiptDetailsHandler(IETAReceiptService etaReceiptService)
-//    {
-//        _etaReceiptService = etaReceiptService;
-//    }
+public class GetReceiptDetailsHandler : IRequestHandler<GetReceiptDetailsRequest, GetReceiptDetailsResult>
+{
+    private readonly IDirectETAIntegration _directETAIntegration;
 
-//    public async Task<GetReceiptDetailsResult> Handle(GetReceiptDetailsRequest request, CancellationToken cancellationToken)
-//    {
-//        var response = await _etaReceiptService.GetReceiptDetailsAsync(request.ReceiptId ?? string.Empty);
+    public GetReceiptDetailsHandler(IDirectETAIntegration directETAIntegration)
+    {
+        _directETAIntegration = directETAIntegration;
+    }
 
-//        return new GetReceiptDetailsResult
-//        {
-//            Data = response
-//        };
-//    }
-//} 
+    public async Task<GetReceiptDetailsResult> Handle(GetReceiptDetailsRequest request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var getReceiptDetailsRequest = new GetReceiptDetailsRequestDto
+            {
+                Uuid = request.Uuid,
+                DateTimeIssued = request.DateTimeIssued
+            };
+
+            var response = await _directETAIntegration.GetReceiptDetailsAsync(getReceiptDetailsRequest, request.AccessToken);
+
+            return new GetReceiptDetailsResult
+            {
+                Data = response,
+                IsSuccess = response != null && response.Receipt != null,
+                ErrorMessage = response?.Receipt == null ? "Receipt not found" : null
+            };
+        }
+        catch (Exception ex)
+        {
+            return new GetReceiptDetailsResult
+            {
+                IsSuccess = false,
+                ErrorMessage = $"Failed to get receipt details: {ex.Message}"
+            };
+        }
+    }
+} 

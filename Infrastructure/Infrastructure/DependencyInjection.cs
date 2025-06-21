@@ -45,7 +45,7 @@ public static class DependencyInjection
         services.RegisterFileImageManager(configuration);
 
         //>>> ETA Receipt Manager
-        services.RegisterETAReceiptManager(configuration);
+        services.AddDirectETAIntegration();
 
         return services;
     }
