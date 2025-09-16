@@ -30,21 +30,31 @@
                                     </div>
                                     <div class="card-body">
                                         <div class="row mb-2">
-                                            <div class="col-md-6">
+                                           @*  <div class="col-md-6">
                                                 <label for="OrderDate">Order Date</label>
                                                 <input ref="orderDateRef" />
                                                 <label class="text-danger">{{ state.errors.orderDate }}</label>
-                                            </div>
+                                            </div> *@
                                             <div class="col-md-6">
                                                 <label for="Number">Number</label>
                                                 <input ref="numberRef" v-model="state.number" readonly>
                                             </div>
-                                        </div>
-                                        <div class="row mb-2">
                                             <div class="col-md-6">
                                                 <label for="VendorId">Vendor</label>
                                                 <div ref="vendorIdRef"></div>
                                                 <label class="text-danger">{{ state.errors.vendorId }}</label>
+                                            </div>
+                                        </div>
+                                        <div class="row mb-2">
+                                           @*  <div class="col-md-6">
+                                                <label for="VendorId">Vendor</label>
+                                                <div ref="vendorIdRef"></div>
+                                                <label class="text-danger">{{ state.errors.vendorId }}</label>
+                                            </div> *@
+                                            <div class="col-md-6">
+                                                <label for="OrderStatus">Order Status</label>
+                                                <div ref="orderStatusRef"></div>
+                                                <label class="text-danger">{{ state.errors.orderStatus }}</label>
                                             </div>
                                             <div class="col-md-6">
                                                 <label for="TaxId">Tax</label>
@@ -53,11 +63,11 @@
                                             </div>
                                         </div>
                                         <div class="row mb-2">
-                                            <div class="col-md-6">
+                                         @*    <div class="col-md-6">
                                                 <label for="OrderStatus">Order Status</label>
                                                 <div ref="orderStatusRef"></div>
                                                 <label class="text-danger">{{ state.errors.orderStatus }}</label>
-                                            </div>
+                                            </div> *@
                                         </div>
                                         <div class="row mb-2">
                                             <div class="col-md-12">

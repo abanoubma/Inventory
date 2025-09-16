@@ -37,25 +37,10 @@ public static class NavigationTreeStructure
             "URL": "#",
             "Name": "Sales",
             "IsModule": true,
-            "Children": [
-                {
-                    "URL": "/CustomerGroups/CustomerGroupList",
-                    "Name": "Customer Group",
-                    "IsModule": false
-                },
-                {
-                    "URL": "/CustomerCategories/CustomerCategoryList",
-                    "Name": "Customer Category",
-                    "IsModule": false
-                },
+            "Children": [                                
                 {
                     "URL": "/Customers/CustomerList",
                     "Name": "Customer",
-                    "IsModule": false
-                },
-                {
-                    "URL": "/CustomerContacts/CustomerContactList",
-                    "Name": "Customer Contact",
                     "IsModule": false
                 },
                 {
@@ -76,25 +61,10 @@ public static class NavigationTreeStructure
             "IsModule": true,
             "Children": [
                 {
-                    "URL": "/VendorGroups/VendorGroupList",
-                    "Name": "Vendor Group",
-                    "IsModule": false
-                },
-                {
-                    "URL": "/VendorCategories/VendorCategoryList",
-                    "Name": "Vendor Category",
-                    "IsModule": false
-                },
-                {
                     "URL": "/Vendors/VendorList",
                     "Name": "Vendor",
                     "IsModule": false
-                },
-                {
-                    "URL": "/VendorContacts/VendorContactList",
-                    "Name": "Vendor Contact",
-                    "IsModule": false
-                },
+                },                
                 {
                     "URL": "/PurchaseOrders/PurchaseOrderList",
                     "Name": "Purchase Order",
@@ -195,23 +165,6 @@ public static class NavigationTreeStructure
                 {
                     "URL": "/MovementReports/MovementReportList",
                     "Name": "Movement Reports",
-                    "IsModule": false
-                }
-            ]
-        },
-        {
-            "URL": "#",
-            "Name": "Utilities",
-            "IsModule": true,
-            "Children": [   
-                {
-                    "URL": "/Todos/TodoList",
-                    "Name": "Todo",
-                    "IsModule": false
-                },
-                {
-                    "URL": "/TodoItems/TodoItemList",
-                    "Name": "Todo Item",
                     "IsModule": false
                 }
             ]

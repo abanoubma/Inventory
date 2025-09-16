@@ -47,20 +47,21 @@ public class GetCustomerCategoryListHandler : IRequestHandler<GetCustomerCategor
 
     public async Task<GetCustomerCategoryListResult> Handle(GetCustomerCategoryListRequest request, CancellationToken cancellationToken)
     {
-        var query = _context
-            .CustomerCategory
-            .AsNoTracking()
-            .ApplyIsDeletedFilter(request.IsDeleted)
-            .AsQueryable();
+        //var query = _context
+        //    .CustomerCategory
+        //    .AsNoTracking()
+        //    .ApplyIsDeletedFilter(request.IsDeleted)
+        //    .AsQueryable();
 
-        var entities = await query.ToListAsync(cancellationToken);
+        //var entities = await query.ToListAsync(cancellationToken);
 
-        var dtos = _mapper.Map<List<GetCustomerCategoryListDto>>(entities);
+        //var dtos = _mapper.Map<List<GetCustomerCategoryListDto>>(entities);
 
-        return new GetCustomerCategoryListResult
-        {
-            Data = dtos
-        };
+        //return new GetCustomerCategoryListResult
+        //{
+        //    Data = dtos
+        //};
+        return new GetCustomerCategoryListResult();
     }
 
 

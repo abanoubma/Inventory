@@ -14,8 +14,8 @@ public interface IEntityDbSet
     public DbSet<FileDocument> FileDocument { get; set; }
 
     public DbSet<NumberSequence> NumberSequence { get; set; }
-    public DbSet<CustomerGroup> CustomerGroup { get; set; }
-    public DbSet<CustomerCategory> CustomerCategory { get; set; }
+    //public DbSet<CustomerGroup> CustomerGroup { get; set; }
+  //  public DbSet<CustomerCategory> CustomerCategory { get; set; }
     public DbSet<VendorGroup> VendorGroup { get; set; }
     public DbSet<VendorCategory> VendorCategory { get; set; }
     public DbSet<Warehouse> Warehouse { get; set; }
@@ -28,6 +28,8 @@ public interface IEntityDbSet
     public DbSet<VendorContact> VendorContact { get; set; }
     public DbSet<Tax> Tax { get; set; }
     public DbSet<SalesOrder> SalesOrder { get; set; }
+    public DbSet<SalesOrderTax> SalesOrderTaxes { get; set; }
+    public DbSet<PurchaseOrderTax> PurchaseOrderTaxes { get; set; }
     public DbSet<SalesOrderItem> SalesOrderItem { get; set; }
     public DbSet<PurchaseOrder> PurchaseOrder { get; set; }
     public DbSet<PurchaseOrderItem> PurchaseOrderItem { get; set; }

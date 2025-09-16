@@ -107,22 +107,22 @@
                     throw error;
                 }
             },
-            getCustomerGroupListLookupData: async () => {
-                try {
-                    const response = await AxiosManager.get('/CustomerGroup/GetCustomerGroupList', {});
-                    return response;
-                } catch (error) {
-                    throw error;
-                }
-            },
-            getCustomerCategoryListLookupData: async () => {
-                try {
-                    const response = await AxiosManager.get('/CustomerCategory/GetCustomerCategoryList', {});
-                    return response;
-                } catch (error) {
-                    throw error;
-                }
-            },
+            //getCustomerGroupListLookupData: async () => {
+            //    try {
+            //        const response = await AxiosManager.get('/CustomerGroup/GetCustomerGroupList', {});
+            //        return response;
+            //    } catch (error) {
+            //        throw error;
+            //    }
+            //},
+            //getCustomerCategoryListLookupData: async () => {
+            //    try {
+            //        const response = await AxiosManager.get('/CustomerCategory/GetCustomerCategoryList', {});
+            //        return response;
+            //    } catch (error) {
+            //        throw error;
+            //    }
+            //},
             getSecondaryData: async (customerId) => {
                 try {
                     const response = await AxiosManager.get('/CustomerContact/GetCustomerContactByCustomerIdList?customerId=' + customerId, {});
@@ -164,14 +164,14 @@
         };
 
         const methods = {
-            populateCustomerGroupListLookupData: async () => {
-                const response = await services.getCustomerGroupListLookupData();
-                state.customerGroupListLookupData = response?.data?.content?.data;
-            },
-            populateCustomerCategoryListLookupData: async () => {
-                const response = await services.getCustomerCategoryListLookupData();
-                state.customerCategoryListLookupData = response?.data?.content?.data;
-            },
+            //populateCustomerGroupListLookupData: async () => {
+            //    const response = await services.getCustomerGroupListLookupData();
+            //    state.customerGroupListLookupData = response?.data?.content?.data;
+            //},
+            //populateCustomerCategoryListLookupData: async () => {
+            //    const response = await services.getCustomerCategoryListLookupData();
+            //    state.customerCategoryListLookupData = response?.data?.content?.data;
+            //},
             populateMainData: async () => {
                 const response = await services.getMainData();
                 state.mainData = response?.data?.content?.data.map(item => ({
@@ -591,42 +591,42 @@
                         state.errors.name = 'Name is required.';
                         isValid = false;
                     }
-                    if (!state.customerGroupId) {
-                        state.errors.customerGroupId = 'Customer Group is required.';
-                        isValid = false;
-                    }
-                    if (!state.customerCategoryId) {
-                        state.errors.customerCategoryId = 'Customer Category is required.';
-                        isValid = false;
-                    }
-                    if (!state.street) {
-                        state.errors.street = 'Street is required.';
-                        isValid = false;
-                    }
-                    if (!state.city) {
-                        state.errors.city = 'City is required.';
-                        isValid = false;
-                    }
-                    if (!state.state) {
-                        state.errors.state = 'State is required.';
-                        isValid = false;
-                    }
-                    if (!state.zipCode) {
-                        state.errors.zipCode = 'Zip Code is required.';
-                        isValid = false;
-                    }
-                    if (!state.country) {
-                        state.errors.country = 'Country is required.';
-                        isValid = false;
-                    }
-                    if (!state.phoneNumber) {
-                        state.errors.phoneNumber = 'Phone Number is required.';
-                        isValid = false;
-                    }
-                    if (!state.emailAddress) {
-                        state.errors.emailAddress = 'Email Address is required.';
-                        isValid = false;
-                    }
+                    //if (!state.customerGroupId) {
+                    //    state.errors.customerGroupId = 'Customer Group is required.';
+                    //    isValid = false;
+                    //}
+                    //if (!state.customerCategoryId) {
+                    //    state.errors.customerCategoryId = 'Customer Category is required.';
+                    //    isValid = false;
+                    //}
+                    //if (!state.street) {
+                    //    state.errors.street = 'Street is required.';
+                    //    isValid = false;
+                    //}
+                    //if (!state.city) {
+                    //    state.errors.city = 'City is required.';
+                    //    isValid = false;
+                    //}
+                    //if (!state.state) {
+                    //    state.errors.state = 'State is required.';
+                    //    isValid = false;
+                    //}
+                    //if (!state.zipCode) {
+                    //    state.errors.zipCode = 'Zip Code is required.';
+                    //    isValid = false;
+                    //}
+                    //if (!state.country) {
+                    //    state.errors.country = 'Country is required.';
+                    //    isValid = false;
+                    //}
+                    //if (!state.phoneNumber) {
+                    //    state.errors.phoneNumber = 'Phone Number is required.';
+                    //    isValid = false;
+                    //}
+                    //if (!state.emailAddress) {
+                    //    state.errors.emailAddress = 'Email Address is required.';
+                    //    isValid = false;
+                    //}
 
                     if (!isValid) return;
 
@@ -645,24 +645,24 @@
                             state.id = response?.data?.content?.data.id ?? '';
                             state.number = response?.data?.content?.data.number ?? '';
                             state.name = response?.data?.content?.data.name ?? '';
-                            state.customerGroupId = response?.data?.content?.data.customerGroupId ?? null;
-                            state.customerCategoryId = response?.data?.content?.data.customerCategoryId ?? null;
+                            //state.customerGroupId = response?.data?.content?.data.customerGroupId ?? null;
+                            //state.customerCategoryId = response?.data?.content?.data.customerCategoryId ?? null;
                             state.description = response?.data?.content?.data.description ?? '';
-                            state.street = response?.data?.content?.data.street ?? '';
-                            state.city = response?.data?.content?.data.city ?? '';
-                            state.state = response?.data?.content?.data.state ?? '';
-                            state.zipCode = response?.data?.content?.data.zipCode ?? '';
-                            state.country = response?.data?.content?.data.country ?? '';
+                            //state.street = response?.data?.content?.data.street ?? '';
+                            //state.city = response?.data?.content?.data.city ?? '';
+                            //state.state = response?.data?.content?.data.state ?? '';
+                            //state.zipCode = response?.data?.content?.data.zipCode ?? '';
+                            //state.country = response?.data?.content?.data.country ?? '';
                             state.phoneNumber = response?.data?.content?.data.phoneNumber ?? '';
                             state.faxNumber = response?.data?.content?.data.faxNumber ?? '';
-                            state.emailAddress = response?.data?.content?.data.emailAddress ?? '';
-                            state.website = response?.data?.content?.data.website ?? '';
-                            state.whatsApp = response?.data?.content?.data.whatsApp ?? '';
-                            state.linkedIn = response?.data?.content?.data.linkedIn ?? '';
-                            state.facebook = response?.data?.content?.data.facebook ?? '';
-                            state.instagram = response?.data?.content?.data.instagram ?? '';
-                            state.twitterX = response?.data?.content?.data.twitterX ?? '';
-                            state.tikTok = response?.data?.content?.data.tikTok ?? '';
+                            //state.emailAddress = response?.data?.content?.data.emailAddress ?? '';
+                            //state.website = response?.data?.content?.data.website ?? '';
+                            //state.whatsApp = response?.data?.content?.data.whatsApp ?? '';
+                            //state.linkedIn = response?.data?.content?.data.linkedIn ?? '';
+                            //state.facebook = response?.data?.content?.data.facebook ?? '';
+                            //state.instagram = response?.data?.content?.data.instagram ?? '';
+                            //state.twitterX = response?.data?.content?.data.twitterX ?? '';
+                            //state.tikTok = response?.data?.content?.data.tikTok ?? '';
 
                             Swal.fire({
                                 icon: 'success',
@@ -715,35 +715,35 @@
             state.id = '';
             state.number = '';
             state.name = '';
-            state.customerGroupId = null;
-            state.customerCategoryId = null;
+            //state.customerGroupId = null;
+            //state.customerCategoryId = null;
             state.description = '';
-            state.street = '';
-            state.city = '';
-            state.state = '';
-            state.zipCode = '';
-            state.country = '';
+            //state.street = '';
+            //state.city = '';
+            //state.state = '';
+            //state.zipCode = '';
+            //state.country = '';
             state.phoneNumber = '';
             state.faxNumber = '';
-            state.emailAddress = '';
-            state.website = '';
-            state.whatsApp = '';
-            state.linkedIn = '';
-            state.facebook = '';
-            state.instagram = '';
-            state.twitterX = '';
-            state.tikTok = '';
+            //state.emailAddress = '';
+            //state.website = '';
+            //state.whatsApp = '';
+            //state.linkedIn = '';
+            //state.facebook = '';
+            //state.instagram = '';
+            //state.twitterX = '';
+            //state.tikTok = '';
             state.errors = {
                 name: '',
-                customerGroupId: '',
-                customerCategoryId: '',
-                street: '',
-                city: '',
-                state: '',
-                zipCode: '',
-                country: '',
+                //customerGroupId: '',
+                //customerCategoryId: '',
+                //street: '',
+                //city: '',
+                //state: '',
+                //zipCode: '',
+                //country: '',
                 phoneNumber: '',
-                emailAddress: '',
+                //emailAddress: '',
             };
         };
 
@@ -757,7 +757,7 @@
                     allowSorting: true,
                     allowSelection: true,
                     allowGrouping: true,
-                    groupSettings: { columns: ['customerCategoryName'] },
+                  //  groupSettings: { columns: ['customerCategoryName'] },
                     allowTextWrap: true,
                     allowResizing: true,
                     allowPaging: true,
@@ -776,11 +776,11 @@
                         },
                         { field: 'number', headerText: 'Number', width: 150, minWidth: 150 },
                         { field: 'name', headerText: 'Name', width: 200, minWidth: 200 },
-                        { field: 'customerGroupName', headerText: 'Group', width: 200, minWidth: 200 },
-                        { field: 'customerCategoryName', headerText: 'Category', width: 200, minWidth: 200 },
-                        { field: 'street', headerText: 'Street', width: 200, minWidth: 200 },
+                        //{ field: 'customerGroupName', headerText: 'Group', width: 200, minWidth: 200 },
+                        //{ field: 'customerCategoryName', headerText: 'Category', width: 200, minWidth: 200 },
+                        //{ field: 'street', headerText: 'Street', width: 200, minWidth: 200 },
                         { field: 'phoneNumber', headerText: 'Phone', width: 200, minWidth: 200 },
-                        { field: 'emailAddress', headerText: 'Email', width: 200, minWidth: 200 },
+                        //{ field: 'emailAddress', headerText: 'Email', width: 200, minWidth: 200 },
                         { field: 'createdAtUtc', headerText: 'Created At UTC', width: 150, format: 'yyyy-MM-dd HH:mm' }
                     ],
                     toolbar: [
@@ -795,7 +795,7 @@
                     beforeDataBound: () => { },
                     dataBound: function () {
                         mainGrid.obj.toolbarModule.enableItems(['EditCustom', 'DeleteCustom', 'ManageContactCustom'], false);
-                        mainGrid.obj.autoFitColumns(['name', 'customerGroupName', 'customerCategoryName', 'street', 'phoneNumber', 'emailAddress', 'createdAtUtc']);
+                        mainGrid.obj.autoFitColumns(['name',  'phoneNumber', 'createdAtUtc']);
                     },
                     excelExportComplete: () => { },
                     rowSelected: () => {
@@ -837,24 +837,24 @@
                                 state.id = selectedRecord.id ?? '';
                                 state.number = selectedRecord.number ?? '';
                                 state.name = selectedRecord.name ?? '';
-                                state.customerGroupId = selectedRecord.customerGroupId ?? null;
-                                state.customerCategoryId = selectedRecord.customerCategoryId ?? null;
+                                //state.customerGroupId = selectedRecord.customerGroupId ?? null;
+                                //state.customerCategoryId = selectedRecord.customerCategoryId ?? null;
                                 state.description = selectedRecord.description ?? '';
-                                state.street = selectedRecord.street ?? '';
-                                state.city = selectedRecord.city ?? '';
-                                state.state = selectedRecord.state ?? '';
-                                state.zipCode = selectedRecord.zipCode ?? '';
-                                state.country = selectedRecord.country ?? '';
+                                //state.street = selectedRecord.street ?? '';
+                                //state.city = selectedRecord.city ?? '';
+                                //state.state = selectedRecord.state ?? '';
+                                //state.zipCode = selectedRecord.zipCode ?? '';
+                                //state.country = selectedRecord.country ?? '';
                                 state.phoneNumber = selectedRecord.phoneNumber ?? '';
                                 state.faxNumber = selectedRecord.faxNumber ?? '';
-                                state.emailAddress = selectedRecord.emailAddress ?? '';
-                                state.website = selectedRecord.website ?? '';
-                                state.whatsApp = selectedRecord.whatsApp ?? '';
-                                state.linkedIn = selectedRecord.linkedIn ?? '';
-                                state.facebook = selectedRecord.facebook ?? '';
-                                state.instagram = selectedRecord.instagram ?? '';
-                                state.twitterX = selectedRecord.twitterX ?? '';
-                                state.tikTok = selectedRecord.tikTok ?? '';
+                                //state.emailAddress = selectedRecord.emailAddress ?? '';
+                                //state.website = selectedRecord.website ?? '';
+                                //state.whatsApp = selectedRecord.whatsApp ?? '';
+                                //state.linkedIn = selectedRecord.linkedIn ?? '';
+                                //state.facebook = selectedRecord.facebook ?? '';
+                                //state.instagram = selectedRecord.instagram ?? '';
+                                //state.twitterX = selectedRecord.twitterX ?? '';
+                                //state.tikTok = selectedRecord.tikTok ?? '';
                                 mainModal.obj.show();
                             }
                         }
@@ -936,9 +936,9 @@
                             field: 'id', isPrimaryKey: true, headerText: 'Id', visible: false
                         },
                         { field: 'name', headerText: 'Name', width: 200, minWidth: 200, validationRules: { required: true } },
-                        { field: 'jobTitle', headerText: 'Job Title', width: 200, minWidth: 200, validationRules: { required: true } },
+                        //{ field: 'jobTitle', headerText: 'Job Title', width: 200, minWidth: 200, validationRules: { required: true } },
                         { field: 'phoneNumber', headerText: 'Phone', width: 200, minWidth: 200, validationRules: { required: true } },
-                        { field: 'emailAddress', headerText: 'Email', width: 200, minWidth: 200, validationRules: { required: true } },
+                        //{ field: 'emailAddress', headerText: 'Email', width: 200, minWidth: 200, validationRules: { required: true } },
                         { field: 'description', headerText: 'Description', width: 400, minWidth: 400 },
                         { field: 'createdAtUtc', headerText: 'Created At UTC', width: 150, format: 'yyyy-MM-dd HH:mm' }
                     ],
@@ -948,7 +948,7 @@
                     beforeDataBound: () => { },
                     dataBound: function () {
                         secondaryGrid.obj.toolbarModule.enableItems(['Edit', 'Delete'], false);
-                        secondaryGrid.obj.autoFitColumns(['name', 'jobTitle', 'phoneNumber', 'emailAddress', 'description', 'createdAtUtc']);
+                        secondaryGrid.obj.autoFitColumns(['name', 'phoneNumber', 'description', 'createdAtUtc']);
                     },
                     excelExportComplete: () => { },
                     rowSelected: () => {
@@ -1027,9 +1027,9 @@
 
                 await methods.populateMainData();
                 await mainGrid.create(state.mainData);
-                await methods.populateCustomerGroupListLookupData();
+             //   await methods.populateCustomerGroupListLookupData();
                 customerGroupListLookup.create();
-                await methods.populateCustomerCategoryListLookupData();
+             //   await methods.populateCustomerCategoryListLookupData();
                 customerCategoryListLookup.create();
                 nameText.create();
                 numberText.create();

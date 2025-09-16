@@ -40,15 +40,15 @@ public class GetVendorListProfile : Profile
 {
     public GetVendorListProfile()
     {
-        CreateMap<Vendor, GetVendorListDto>()
-            .ForMember(
-                dest => dest.VendorGroupName,
-                opt => opt.MapFrom(src => src.VendorGroup != null ? src.VendorGroup.Name : string.Empty)
-            )
-            .ForMember(
-                dest => dest.VendorCategoryName,
-                opt => opt.MapFrom(src => src.VendorCategory != null ? src.VendorCategory.Name : string.Empty)
-            );
+        CreateMap<Vendor, GetVendorListDto>();
+            //.ForMember(
+            //    dest => dest.VendorGroupName,
+            //    opt => opt.MapFrom(src => src.VendorGroup != null ? src.VendorGroup.Name : string.Empty)
+            //)
+            //.ForMember(
+            //    dest => dest.VendorCategoryName,
+            //    opt => opt.MapFrom(src => src.VendorCategory != null ? src.VendorCategory.Name : string.Empty)
+            //);
 
     }
 }
@@ -81,8 +81,8 @@ public class GetVendorListHandler : IRequestHandler<GetVendorListRequest, GetVen
             .Vendor
             .AsNoTracking()
             .ApplyIsDeletedFilter(request.IsDeleted)
-            .Include(x => x.VendorGroup)
-            .Include(x => x.VendorCategory)
+            //.Include(x => x.VendorGroup)
+            //.Include(x => x.VendorCategory)
             .AsQueryable();
 
         var entities = await query.ToListAsync(cancellationToken);

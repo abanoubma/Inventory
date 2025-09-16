@@ -50,7 +50,8 @@ public class GetSalesOrderSingleHandler : IRequestHandler<GetSalesOrderSingleReq
             .SalesOrder
             .AsNoTracking()
             .Include(x => x.Customer)
-            .Include(x => x.Tax)
+            .Include(x => x.SalesOrderTaxes)
+               .ThenInclude(t=>t.Tax)
             .Include(x => x.SalesOrderItemList.Where(item => !item.IsDeleted))
                 .ThenInclude(x => x.Product)
             .Where(x => x.Id == request.Id)

@@ -51,20 +51,19 @@ public class GetPurchaseDashboardHandler : IRequestHandler<GetPurchaseDashboardR
             .ApplyIsDeletedFilter(false)
                 .Include(x => x.PurchaseOrder)
                     .ThenInclude(x => x!.Vendor)
-                        .ThenInclude(x => x!.VendorGroup)
+                        //.ThenInclude(x => x!.VendorGroup)
                 .Include(x => x.Product)
                 .Where(x => x.Product!.Physical == true)
             .Select(x => new
             {
                 Status = x.PurchaseOrder!.OrderStatus,
-                VendorGroupName = x.PurchaseOrder!.Vendor!.VendorGroup!.Name,
+               // VendorGroupName = x.PurchaseOrder!.Vendor!.VendorGroup!.Name,
                 Quantity = x.Quantity
             })
-            .GroupBy(x => new { x.Status, x.VendorGroupName })
+            .GroupBy(x => new { x.Status })
             .Select(g => new
             {
-                Status = g.Key.Status,
-                VendorGroupName = g.Key.VendorGroupName,
+                Status = g.Key.Status,               
                 Quantity = g.Sum(x => x.Quantity)
             })
             .ToList();
@@ -74,20 +73,20 @@ public class GetPurchaseDashboardHandler : IRequestHandler<GetPurchaseDashboardR
             .ApplyIsDeletedFilter(false)
             .Include(x => x.PurchaseOrder)
                 .ThenInclude(x => x!.Vendor)
-                    .ThenInclude(x => x!.VendorCategory)
+                    //.ThenInclude(x => x!.VendorCategory)
             .Include(x => x.Product)
             .Where(x => x.Product!.Physical == true)
             .Select(x => new
             {
                 Status = x.PurchaseOrder!.OrderStatus,
-                VendorCategoryName = x.PurchaseOrder!.Vendor!.VendorCategory!.Name,
+               // VendorCategoryName = x.PurchaseOrder!.Vendor!.VendorCategory!.Name,
                 Quantity = x.Quantity
             })
-            .GroupBy(x => new { x.Status, x.VendorCategoryName })
+            .GroupBy(x => new { x.Status })
             .Select(g => new
             {
                 Status = g.Key.Status,
-                VendorCategoryName = g.Key.VendorCategoryName,
+               // VendorCategoryName = g.Key.VendorCategoryName,
                 Quantity = g.Sum(x => x.Quantity)
             })
             .ToList();
@@ -114,8 +113,8 @@ public class GetPurchaseDashboardHandler : IRequestHandler<GetPurchaseDashboardR
                             .Where(x => x.Status == status)
                             .Select(x => new BarDataItem
                             {
-                                X = x.VendorGroupName ?? "",
-                                TooltipMappingName = x.VendorGroupName ?? "",
+                                // X = x.VendorGroupName ?? "",
+                                //  TooltipMappingName = x.VendorGroupName ?? "",
                                 Y = (int)x.Quantity!.Value
                             }).ToList()
                     })
@@ -136,8 +135,8 @@ public class GetPurchaseDashboardHandler : IRequestHandler<GetPurchaseDashboardR
                             .Where(x => x.Status == status)
                             .Select(x => new BarDataItem
                             {
-                                X = x.VendorCategoryName ?? "",
-                                TooltipMappingName = x.VendorCategoryName ?? "",
+                                //X = x.VendorCategoryName ?? "",
+                                //TooltipMappingName = x.VendorCategoryName ?? "",
                                 Y = (int)x.Quantity!.Value
                             }).ToList()
                     })
@@ -146,5 +145,6 @@ public class GetPurchaseDashboardHandler : IRequestHandler<GetPurchaseDashboardR
         };
 
         return result;
+        //return new GetPurchaseDashboardResult();
     }
 }

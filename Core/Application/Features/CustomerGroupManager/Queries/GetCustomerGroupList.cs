@@ -47,20 +47,21 @@ public class GetCustomerGroupListHandler : IRequestHandler<GetCustomerGroupListR
 
     public async Task<GetCustomerGroupListResult> Handle(GetCustomerGroupListRequest request, CancellationToken cancellationToken)
     {
-        var query = _context
-            .CustomerGroup
-            .AsNoTracking()
-            .ApplyIsDeletedFilter(request.IsDeleted)
-            .AsQueryable();
+        //var query = _context
+        //    .CustomerGroup
+        //    .AsNoTracking()
+        //    .ApplyIsDeletedFilter(request.IsDeleted)
+        //    .AsQueryable();
 
-        var entities = await query.ToListAsync(cancellationToken);
+        //var entities = await query.ToListAsync(cancellationToken);
 
-        var dtos = _mapper.Map<List<GetCustomerGroupListDto>>(entities);
+        //var dtos = _mapper.Map<List<GetCustomerGroupListDto>>(entities);
 
-        return new GetCustomerGroupListResult
-        {
-            Data = dtos
-        };
+        //return new GetCustomerGroupListResult
+        //{
+        //    Data = dtos
+        //};
+        return new GetCustomerGroupListResult();
     }
 
 

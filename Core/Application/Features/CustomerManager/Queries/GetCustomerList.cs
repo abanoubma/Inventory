@@ -29,9 +29,9 @@ public record GetCustomerListDto
     public string? TwitterX { get; set; }
     public string? TikTok { get; set; }
     public string? CustomerGroupId { get; set; }
-    public string? CustomerGroupName { get; set; }
+  //  public string? CustomerGroupName { get; set; }
     public string? CustomerCategoryId { get; set; }
-    public string? CustomerCategoryName { get; set; }
+ //   public string? CustomerCategoryName { get; set; }
     public string? CreatedById { get; init; }
     public DateTime? CreatedAtUtc { get; init; }
 }
@@ -40,15 +40,18 @@ public class GetCustomerListProfile : Profile
 {
     public GetCustomerListProfile()
     {
-        CreateMap<Customer, GetCustomerListDto>()
-            .ForMember(
-                dest => dest.CustomerGroupName,
-                opt => opt.MapFrom(src => src.CustomerGroup != null ? src.CustomerGroup.Name : string.Empty)
-            )
-            .ForMember(
-                dest => dest.CustomerCategoryName,
-                opt => opt.MapFrom(src => src.CustomerCategory != null ? src.CustomerCategory.Name : string.Empty)
-            );
+        CreateMap<Customer, GetCustomerListDto>();
+        //CreateMap<Customer, GetCustomerListDto>()
+        //    .ForMember(
+        //        dest => dest.CustomerGroupName,
+        //        opt => opt.MapFrom(string.Empty)
+        //        //opt => opt.MapFrom(src => src.CustomerGroup != null ? src.CustomerGroup.Name : string.Empty)
+        //    )
+        //    .ForMember(
+        //        dest => dest.CustomerCategoryName,
+        //        opt => opt.MapFrom(string.Empty)
+        //        //opt => opt.MapFrom(src => src.CustomerCategory != null ? src.CustomerCategory.Name : string.Empty)
+        //    );
 
     }
 }
@@ -81,8 +84,8 @@ public class GetCustomerListHandler : IRequestHandler<GetCustomerListRequest, Ge
             .Customer
             .AsNoTracking()
             .ApplyIsDeletedFilter(request.IsDeleted)
-            .Include(x => x.CustomerGroup)
-            .Include(x => x.CustomerCategory)
+            //.Include(x => x.CustomerGroup)
+           // .Include(x => x.CustomerCategory)
             .AsQueryable();
 
         var entities = await query.ToListAsync(cancellationToken);

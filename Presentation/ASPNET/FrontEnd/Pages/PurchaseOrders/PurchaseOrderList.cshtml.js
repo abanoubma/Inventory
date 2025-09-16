@@ -40,23 +40,23 @@
         const secondaryGridRef = Vue.ref(null);
 
         const validateForm = function () {
-            state.errors.orderDate = '';
+           /* state.errors.orderDate = '';*/
             state.errors.vendorId = '';
             state.errors.taxId = '';
             state.errors.orderStatus = '';
 
             let isValid = true;
 
-            if (!state.orderDate) {
-                state.errors.orderDate = 'Order date is required.';
-                isValid = false;
-            }
+            //if (!state.orderDate) {
+            //    state.errors.orderDate = 'Order date is required.';
+            //    isValid = false;
+            //}
             if (!state.vendorId) {
                 state.errors.vendorId = 'Vendor is required.';
                 isValid = false;
             }
-            if (!state.taxId) {
-                state.errors.taxId = 'Tax is required.';
+            if (!state.taxId || state.taxId.length === 0) {
+                state.errors.taxId = 'At least one tax is required.';
                 isValid = false;
             }
             if (!state.orderStatus) {
@@ -73,7 +73,7 @@
             state.orderDate = '';
             state.description = '';
             state.vendorId = null;
-            state.taxId = null;
+            state.taxId = [];
             state.orderStatus = null;
             state.errors = {
                 orderDate: '',
@@ -360,20 +360,58 @@
             }
         };
 
+        //const taxListLookup = {
+        //    obj: null,
+        //    trackingChange: false,
+        //    create: () => {
+        //        if (state.taxListLookupData && Array.isArray(state.taxListLookupData)) {
+        //            taxListLookup.obj = new ej.dropdowns.DropDownList({
+        //                dataSource: state.taxListLookupData,
+        //                fields: { value: 'id', text: 'name' },
+        //                placeholder: 'Select a Tax',
+        //                change: async (e) => {
+        //                    state.taxId = e.value;
+        //                    if (e.isInteracted && taxListLookup.trackingChange) {
+        //                        await methods.handleFormSubmit();
+        //                    }
+        //                }
+        //            });
+        //            taxListLookup.obj.appendTo(taxIdRef.value);
+        //        }
+        //    },
+        //    refresh: () => {
+        //        if (taxListLookup.obj) {
+        //            taxListLookup.obj.value = state.taxId;
+        //        }
+        //    }
+        //};
         const taxListLookup = {
             obj: null,
             trackingChange: false,
             create: () => {
                 if (state.taxListLookupData && Array.isArray(state.taxListLookupData)) {
-                    taxListLookup.obj = new ej.dropdowns.DropDownList({
+                    taxListLookup.obj = new ej.dropdowns.MultiSelect({
                         dataSource: state.taxListLookupData,
                         fields: { value: 'id', text: 'name' },
-                        placeholder: 'Select a Tax',
-                        change: async (e) => {
+                        placeholder: 'Select Taxes',
+                        mode: 'CheckBox',
+                        showSelectAll: true,
+                        showDropDownIcon: true,
+                        filterBarPlaceholder: 'Search Taxes',
+                        change: function (e) {
+                            // Store as array of values for multiple selection
                             state.taxId = e.value;
                             if (e.isInteracted && taxListLookup.trackingChange) {
-                                await methods.handleFormSubmit();
+                                methods.handleFormSubmit().catch(error => {
+                                    console.error('Error in form submission:', error);
+                                });
                             }
+                        },
+                        select: (e) => {
+                            console.log('Selected values:', e.value);
+                        },
+                        removed: (e) => {
+                            console.log('Removed values:', e.value);
                         }
                     });
                     taxListLookup.obj.appendTo(taxIdRef.value);
@@ -381,7 +419,8 @@
             },
             refresh: () => {
                 if (taxListLookup.obj) {
-                    taxListLookup.obj.value = state.taxId;
+                    // Set the value as array for MultiSelect
+                    taxListLookup.obj.value = state.taxId || [];
                 }
             }
         };
@@ -501,7 +540,27 @@
                         { field: 'orderDate', headerText: 'PO Date', width: 150, format: 'yyyy-MM-dd' },
                         { field: 'vendorName', headerText: 'Vendor', width: 200, minWidth: 200 },
                         { field: 'orderStatusName', headerText: 'Status', width: 150, minWidth: 150 },
-                        { field: 'taxName', headerText: 'Tax', width: 150, minWidth: 150 },
+                        //{ field: 'taxName', headerText: 'Tax', width: 150, minWidth: 150 },
+                        {
+                            field: 'taxes',
+                            headerText: 'Tax',
+                            width: 150,
+                            minWidth: 150,
+                            // join tax names into a single display string
+                            valueAccessor: function (field, data, column) {
+                                var taxes = data.taxes || data.Taxes || [];
+                                if (!Array.isArray(taxes) || taxes.length === 0) return '';
+                                var names = taxes
+                                    .map(function (t) {
+                                        if (!t) return null;
+                                        if (t.taxName) return t.taxName;
+                                        if (t.tax && t.tax.name) return t.tax.name;
+                                        return null;
+                                    })
+                                    .filter(Boolean);
+                                return names.length ? names.join(', ') : '';
+                            }
+                        },
                         { field: 'afterTaxAmount', headerText: 'Total Amount', width: 150, minWidth: 150, format: 'N2' },
                         { field: 'createdAtUtc', headerText: 'Created At UTC', width: 150, format: 'yyyy-MM-dd HH:mm' }
                     ],
@@ -517,7 +576,7 @@
                     beforeDataBound: () => { },
                     dataBound: function () {
                         mainGrid.obj.toolbarModule.enableItems(['EditCustom', 'DeleteCustom', 'PrintPDFCustom'], false);
-                        mainGrid.obj.autoFitColumns(['number', 'orderDate', 'vendorName', 'orderStatusName', 'taxName', 'afterTaxAmount', 'createdAtUtc']);
+                        mainGrid.obj.autoFitColumns(['number', 'orderDate', 'vendorName', 'orderStatusName', 'taxes', 'afterTaxAmount', 'createdAtUtc']);
                     },
                     excelExportComplete: () => { },
                     rowSelected: () => {
@@ -564,7 +623,16 @@
                                 state.orderDate = selectedRecord.orderDate ? new Date(selectedRecord.orderDate) : null;
                                 state.description = selectedRecord.description ?? '';
                                 state.vendorId = selectedRecord.vendorId ?? '';
-                                state.taxId = selectedRecord.taxId ?? '';
+                                /*state.taxId = selectedRecord.taxId ?? '';*/
+                                state.taxId = (selectedRecord.taxes || selectedRecord.Taxes || [])
+                                    .map(function (t) { return t ? (t.taxId || (t.tax && t.tax.id)) : null; })
+                                    .filter(Boolean);
+
+                                // if you want a display string of tax names for the UI:
+                                state.taxNames = (selectedRecord.taxes || selectedRecord.Taxes || [])
+                                    .map(function (t) { return t ? (t.taxName || (t.tax && t.tax.name)) : null; })
+                                    .filter(Boolean)
+                                    .join(', ');
                                 taxListLookup.trackingChange = true;
                                 state.orderStatus = String(selectedRecord.orderStatus ?? '');
                                 state.showComplexDiv = true;

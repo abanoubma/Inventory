@@ -51,20 +51,20 @@ public class GetSalesDashboardHandler : IRequestHandler<GetSalesDashboardRequest
             .ApplyIsDeletedFilter(false)
                 .Include(x => x.SalesOrder)
                     .ThenInclude(x => x!.Customer)
-                        .ThenInclude(x => x!.CustomerGroup)
+                        //.ThenInclude(x => x!.CustomerGroup)
                 .Include(x => x.Product)
                 .Where(x => x.Product!.Physical == true)
             .Select(x => new
             {
                 Status = x.SalesOrder!.OrderStatus,
-                CustomerGroupName = x.SalesOrder!.Customer!.CustomerGroup!.Name,
+               // CustomerGroupName = x.SalesOrder!.Customer!.CustomerGroup!.Name,
                 Quantity = x.Quantity
             })
-            .GroupBy(x => new { x.Status, x.CustomerGroupName })
+            .GroupBy(x => new { x.Status })
             .Select(g => new
             {
                 Status = g.Key.Status,
-                CustomerGroupName = g.Key.CustomerGroupName,
+               // CustomerGroupName = g.Key.CustomerGroupName,
                 Quantity = g.Sum(x => x.Quantity)
             })
             .ToList();
@@ -74,20 +74,20 @@ public class GetSalesDashboardHandler : IRequestHandler<GetSalesDashboardRequest
             .ApplyIsDeletedFilter(false)
             .Include(x => x.SalesOrder)
                 .ThenInclude(x => x!.Customer)
-                    .ThenInclude(x => x!.CustomerCategory)
+                 //   .ThenInclude(x => x!.CustomerCategory)
             .Include(x => x.Product)
             .Where(x => x.Product!.Physical == true)
             .Select(x => new
             {
                 Status = x.SalesOrder!.OrderStatus,
-                CustomerCategoryName = x.SalesOrder!.Customer!.CustomerCategory!.Name,
+              //  CustomerCategoryName = x.SalesOrder!.Customer!.CustomerCategory!.Name,
                 Quantity = x.Quantity
             })
-            .GroupBy(x => new { x.Status, x.CustomerCategoryName })
+            .GroupBy(x => new { x.Status })
             .Select(g => new
             {
                 Status = g.Key.Status,
-                CustomerCategoryName = g.Key.CustomerCategoryName,
+              //  CustomerCategoryName = g.Key.CustomerCategoryName,
                 Quantity = g.Sum(x => x.Quantity)
             })
             .ToList();
@@ -114,8 +114,8 @@ public class GetSalesDashboardHandler : IRequestHandler<GetSalesDashboardRequest
                             .Where(x => x.Status == status)
                             .Select(x => new BarDataItem
                             {
-                                X = x.CustomerGroupName ?? "",
-                                TooltipMappingName = x.CustomerGroupName ?? "",
+                              //  X = x.CustomerGroupName ?? "",
+                             //   TooltipMappingName = x.CustomerGroupName ?? "",
                                 Y = (int)x.Quantity!.Value
                             }).ToList()
                     })
@@ -136,8 +136,8 @@ public class GetSalesDashboardHandler : IRequestHandler<GetSalesDashboardRequest
                             .Where(x => x.Status == status)
                             .Select(x => new BarDataItem
                             {
-                                X = x.CustomerCategoryName ?? "",
-                                TooltipMappingName = x.CustomerCategoryName ?? "",
+                           //     X = x.CustomerCategoryName ?? "",
+                             //   TooltipMappingName = x.CustomerCategoryName ?? "",
                                 Y = (int)x.Quantity!.Value
                             }).ToList()
                     })

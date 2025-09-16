@@ -8,30 +8,30 @@ namespace Infrastructure.SeedManager.Demos;
 public class CustomerSeeder
 {
     private readonly ICommandRepository<Customer> _customerRepository;
-    private readonly ICommandRepository<CustomerGroup> _groupRepository;
-    private readonly ICommandRepository<CustomerCategory> _categoryRepository;
+  //  private readonly ICommandRepository<CustomerGroup> _groupRepository;
+   // private readonly ICommandRepository<CustomerCategory> _categoryRepository;
     private readonly NumberSequenceService _numberSequenceService;
     private readonly IUnitOfWork _unitOfWork;
 
     public CustomerSeeder(
         ICommandRepository<Customer> customerRepository,
-        ICommandRepository<CustomerGroup> groupRepository,
-        ICommandRepository<CustomerCategory> categoryRepository,
+        //ICommandRepository<CustomerGroup> groupRepository,
+        //ICommandRepository<CustomerCategory> categoryRepository,
         NumberSequenceService numberSequenceService,
         IUnitOfWork unitOfWork
     )
     {
         _customerRepository = customerRepository;
-        _groupRepository = groupRepository;
-        _categoryRepository = categoryRepository;
+        //_groupRepository = groupRepository;
+        //_categoryRepository = categoryRepository;
         _numberSequenceService = numberSequenceService;
         _unitOfWork = unitOfWork;
     }
 
     public async Task GenerateDataAsync()
     {
-        var groups = (await _groupRepository.GetQuery().ToListAsync()).Select(x => x.Id).ToArray();
-        var categories = (await _categoryRepository.GetQuery().ToListAsync()).Select(x => x.Id).ToArray();
+        //var groups = (await _groupRepository.GetQuery().ToListAsync()).Select(x => x.Id).ToArray();
+        //var categories = (await _categoryRepository.GetQuery().ToListAsync()).Select(x => x.Id).ToArray();
         var cities = new string[] { "New York", "Los Angeles", "San Francisco", "Chicago" };
         var streets = new string[] { "Main St", "Broadway", "Market St", "Elm St" };
         var states = new string[] { "NY", "CA", "IL", "TX" };
@@ -68,14 +68,14 @@ public class CustomerSeeder
         foreach (var customer in customers)
         {
             customer.Number = _numberSequenceService.GenerateNumber(nameof(Customer), "", "CST");
-            customer.CustomerGroupId = GetRandomValue(groups, random);
-            customer.CustomerCategoryId = GetRandomValue(categories, random);
-            customer.City = GetRandomString(cities, random);
-            customer.Street = GetRandomString(streets, random);
-            customer.State = GetRandomString(states, random);
-            customer.ZipCode = GetRandomString(zipCodes, random);
+            //customer.CustomerGroupId = GetRandomValue(groups, random);
+            //customer.CustomerCategoryId = GetRandomValue(categories, random);
+            //customer.City = GetRandomString(cities, random);
+            //customer.Street = GetRandomString(streets, random);
+            //customer.State = GetRandomString(states, random);
+            //customer.ZipCode = GetRandomString(zipCodes, random);
             customer.PhoneNumber = GetRandomString(phoneNumbers, random);
-            customer.EmailAddress = $"{customer.Name?.Split(' ')[0].ToLower()}@{GetRandomString(emailDomains, random)}";
+            //customer.EmailAddress = $"{customer.Name?.Split(' ')[0].ToLower()}@{GetRandomString(emailDomains, random)}";
 
             await _customerRepository.CreateAsync(customer);
         }

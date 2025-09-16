@@ -3,6 +3,7 @@ using Domain.Entities;
 using Domain.Enums;
 using FluentValidation;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.Features.SalesOrderManager.Commands;
 
@@ -14,11 +15,11 @@ public class UpdateSalesOrderResult
 public class UpdateSalesOrderRequest : IRequest<UpdateSalesOrderResult>
 {
     public string? Id { get; init; }
-    public DateTime? OrderDate { get; init; }
+    // public DateTime? OrderDate { get; init; }
     public string? OrderStatus { get; init; }
     public string? Description { get; init; }
     public string? CustomerId { get; init; }
-    public string? TaxId { get; init; }
+    public List<string>? TaxId { get; init; }
     public string? UpdatedById { get; init; }
 }
 
@@ -27,21 +28,26 @@ public class UpdateSalesOrderValidator : AbstractValidator<UpdateSalesOrderReque
     public UpdateSalesOrderValidator()
     {
         RuleFor(x => x.Id).NotEmpty();
-        RuleFor(x => x.OrderDate).NotEmpty();
+       // RuleFor(x => x.OrderDate).NotEmpty();
         RuleFor(x => x.OrderStatus).NotEmpty();
         RuleFor(x => x.CustomerId).NotEmpty();
-        RuleFor(x => x.TaxId).NotEmpty();
+        //RuleFor(x => x.TaxId).NotEmpty();RuleFor(x => x.TaxIds)
+        RuleFor(x => x.TaxId).NotEmpty().WithMessage("At least one tax must be selected.")
+        .Must(taxIds => taxIds != null && taxIds.Any()).WithMessage("At least one tax must be selected.");
     }
 }
 
 public class UpdateSalesOrderHandler : IRequestHandler<UpdateSalesOrderRequest, UpdateSalesOrderResult>
 {
     private readonly ICommandRepository<SalesOrder> _repository;
+    private readonly ICommandRepository<SalesOrderTax> _salesOrderTaxRepository;
+
     private readonly IUnitOfWork _unitOfWork;
     private readonly SalesOrderService _salesOrderService;
 
     public UpdateSalesOrderHandler(
         ICommandRepository<SalesOrder> repository,
+        ICommandRepository<SalesOrderTax> salesOrderTaxRepository,
         SalesOrderService salesOrderService,
         IUnitOfWork unitOfWork
         )
@@ -49,11 +55,41 @@ public class UpdateSalesOrderHandler : IRequestHandler<UpdateSalesOrderRequest, 
         _repository = repository;
         _unitOfWork = unitOfWork;
         _salesOrderService = salesOrderService;
+        _salesOrderTaxRepository = salesOrderTaxRepository;
     }
+
+    //public async Task<UpdateSalesOrderResult> Handle(UpdateSalesOrderRequest request, CancellationToken cancellationToken)
+    //{
+
+    //    var entity = await _repository.GetAsync(request.Id ?? string.Empty, cancellationToken);
+
+    //    if (entity == null)
+    //    {
+    //        throw new Exception($"Entity not found: {request.Id}");
+    //    }
+
+    //    entity.UpdatedById = request.UpdatedById;
+
+    //    entity.OrderDate = request.OrderDate;
+    //    entity.OrderStatus = (SalesOrderStatus)int.Parse(request.OrderStatus!);
+    //    entity.Description = request.Description;
+    //    entity.CustomerId = request.CustomerId;
+    //    entity.TaxId = request.TaxId;
+
+    //    _repository.Update(entity);
+    //    await _unitOfWork.SaveAsync(cancellationToken);
+
+    //    _salesOrderService.Recalculate(entity.Id);
+
+    //    return new UpdateSalesOrderResult
+    //    {
+    //        Data = entity
+    //    };
+    //}
+
 
     public async Task<UpdateSalesOrderResult> Handle(UpdateSalesOrderRequest request, CancellationToken cancellationToken)
     {
-
         var entity = await _repository.GetAsync(request.Id ?? string.Empty, cancellationToken);
 
         if (entity == null)
@@ -62,12 +98,35 @@ public class UpdateSalesOrderHandler : IRequestHandler<UpdateSalesOrderRequest, 
         }
 
         entity.UpdatedById = request.UpdatedById;
-
-        entity.OrderDate = request.OrderDate;
+       // entity.OrderDate = request.OrderDate;
         entity.OrderStatus = (SalesOrderStatus)int.Parse(request.OrderStatus!);
         entity.Description = request.Description;
         entity.CustomerId = request.CustomerId;
-        entity.TaxId = request.TaxId;
+
+        // Handle multiple tax IDs
+        // First, remove existing tax associations
+        var existingTaxes = await _salesOrderTaxRepository.GetQuery()
+            .Where(st => st.SalesOrderId == entity.Id)
+            .ToListAsync(cancellationToken);
+
+        foreach (var tax in existingTaxes)
+        {
+             _salesOrderTaxRepository.Delete(tax);
+        }
+
+        // Add new tax associations
+        if (request.TaxId != null && request.TaxId.Any())
+        {
+            foreach (var taxId in request.TaxId)
+            {
+                var salesOrderTax = new SalesOrderTax
+                {
+                    SalesOrderId = entity.Id,
+                    TaxId = taxId
+                };
+                await _salesOrderTaxRepository.CreateAsync(salesOrderTax, cancellationToken);
+            }
+        }
 
         _repository.Update(entity);
         await _unitOfWork.SaveAsync(cancellationToken);

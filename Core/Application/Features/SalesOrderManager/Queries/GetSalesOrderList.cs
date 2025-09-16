@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.Features.SalesOrderManager.Queries;
 
+// csharp
 public record GetSalesOrderListDto
 {
     public string? Id { get; init; }
@@ -18,34 +19,67 @@ public record GetSalesOrderListDto
     public string? Description { get; init; }
     public string? CustomerId { get; init; }
     public string? CustomerName { get; init; }
-    public string? TaxId { get; init; }
-    public string? TaxName { get; init; }
+
+    // new: lists + combined string for display
+    public List<string>? TaxIds { get; init; }
+    public List<string>? TaxNames { get; init; }
+
+    // kept for direct grid binding (server-side joined display)
+    public string TaxNamesCombined { get; init; } = string.Empty;
+
     public double? BeforeTaxAmount { get; init; }
     public double? TaxAmount { get; init; }
     public double? AfterTaxAmount { get; init; }
     public DateTime? CreatedAtUtc { get; init; }
 }
 
+
+// csharp
 public class GetSalesOrderListProfile : Profile
 {
     public GetSalesOrderListProfile()
     {
+        // map SalesOrderTax -> tax id / name (if you want a DTO for the tax join you can create one;
+        // here we map directly to lists on the destination)
         CreateMap<SalesOrder, GetSalesOrderListDto>()
             .ForMember(
                 dest => dest.CustomerName,
                 opt => opt.MapFrom(src => src.Customer != null ? src.Customer.Name : string.Empty)
             )
+            // TaxIds list
             .ForMember(
-                dest => dest.TaxName,
-                opt => opt.MapFrom(src => src.Tax != null ? src.Tax.Name : string.Empty)
+                dest => dest.TaxIds,
+                opt => opt.MapFrom(src =>
+                    src.SalesOrderTaxes != null
+                        ? src.SalesOrderTaxes.Select(st => st.TaxId).ToList()
+                        : new List<string>()
+                )
+            )
+            // TaxNames list (extract tax.Name from included Tax navigation)
+            .ForMember(
+                dest => dest.TaxNames,
+                opt => opt.MapFrom(src =>
+                    src.SalesOrderTaxes != null
+                        ? src.SalesOrderTaxes.Select(st => st.Tax != null ? st.Tax.Name : string.Empty).ToList()
+                        : new List<string>()
+                )
+            )
+            // Combined names for easy grid display
+            .ForMember(
+                dest => dest.TaxNamesCombined,
+                opt => opt.MapFrom(src =>
+                    src.SalesOrderTaxes != null && src.SalesOrderTaxes.Any()
+                        ? string.Join(", ", src.SalesOrderTaxes.Select(st => st.Tax != null ? st.Tax.Name : string.Empty).Where(n => !string.IsNullOrWhiteSpace(n)))
+                        : string.Empty
+                )
             )
             .ForMember(
                 dest => dest.OrderStatusName,
                 opt => opt.MapFrom(src => src.OrderStatus.HasValue ? src.OrderStatus.Value.ToFriendlyName() : string.Empty)
             );
-
     }
 }
+
 
 public class GetSalesOrderListResult
 {
@@ -76,7 +110,8 @@ public class GetSalesOrderListHandler : IRequestHandler<GetSalesOrderListRequest
             .AsNoTracking()
             .ApplyIsDeletedFilter(request.IsDeleted)
             .Include(x => x.Customer)
-            .Include(x => x.Tax)
+            .Include(x => x.SalesOrderTaxes) 
+                .ThenInclude(st => st.Tax)   
             .AsQueryable();
 
         var entities = await query.ToListAsync(cancellationToken);

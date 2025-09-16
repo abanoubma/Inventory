@@ -55,8 +55,8 @@ public static class DI
     {
         services.AddScoped<TaxSeeder>();
         services.AddScoped<UserSeeder>();
-        services.AddScoped<CustomerCategorySeeder>();
-        services.AddScoped<CustomerGroupSeeder>();
+        //services.AddScoped<CustomerCategorySeeder>();
+        //services.AddScoped<CustomerGroupSeeder>();
         services.AddScoped<CustomerSeeder>();
         services.AddScoped<CustomerContactSeeder>();
         services.AddScoped<VendorCategorySeeder>();
@@ -95,11 +95,11 @@ public static class DI
             var userSeeder = serviceProvider.GetRequiredService<UserSeeder>();
             userSeeder.GenerateDataAsync().Wait();
 
-            var customerCategorySeeder = serviceProvider.GetRequiredService<CustomerCategorySeeder>();
-            customerCategorySeeder.GenerateDataAsync().Wait();
+            //var customerCategorySeeder = serviceProvider.GetRequiredService<CustomerCategorySeeder>();
+            //customerCategorySeeder.GenerateDataAsync().Wait();
 
-            var customerGroupSeeder = serviceProvider.GetRequiredService<CustomerGroupSeeder>();
-            customerGroupSeeder.GenerateDataAsync().Wait();
+            //var customerGroupSeeder = serviceProvider.GetRequiredService<CustomerGroupSeeder>();
+            //customerGroupSeeder.GenerateDataAsync().Wait();
 
             var customerSeeder = serviceProvider.GetRequiredService<CustomerSeeder>();
             customerSeeder.GenerateDataAsync().Wait();

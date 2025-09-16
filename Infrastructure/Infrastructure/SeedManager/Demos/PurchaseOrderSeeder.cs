@@ -14,6 +14,8 @@ public class PurchaseOrderSeeder
     private readonly ICommandRepository<PurchaseOrderItem> _purchaseOrderItemRepository;
     private readonly ICommandRepository<Vendor> _vendorRepository;
     private readonly ICommandRepository<Tax> _taxRepository;
+    private readonly ICommandRepository<PurchaseOrderTax> _purchaseOrderTaxRepository;
+
     private readonly ICommandRepository<Product> _productRepository;
     private readonly NumberSequenceService _numberSequenceService;
     private readonly IUnitOfWork _unitOfWork;
@@ -26,7 +28,8 @@ public class PurchaseOrderSeeder
         ICommandRepository<Tax> taxRepository,
         ICommandRepository<Product> productRepository,
         NumberSequenceService numberSequenceService,
-        IUnitOfWork unitOfWork
+        IUnitOfWork unitOfWork,
+        ICommandRepository<PurchaseOrderTax> purchaseOrderTaxRepository
     )
     {
         _purchaseOrderService = purchaseOrderService;
@@ -37,6 +40,7 @@ public class PurchaseOrderSeeder
         _productRepository = productRepository;
         _numberSequenceService = numberSequenceService;
         _unitOfWork = unitOfWork;
+        _purchaseOrderTaxRepository = purchaseOrderTaxRepository;
     }
 
     public async Task GenerateDataAsync()
@@ -61,9 +65,22 @@ public class PurchaseOrderSeeder
                     OrderDate = transDate,
                     OrderStatus = (PurchaseOrderStatus)random.Next(0, Enum.GetNames(typeof(PurchaseOrderStatus)).Length),
                     VendorId = GetRandomValue(vendors, random),
-                    TaxId = GetRandomValue(taxes, random),
+                  //  TaxId = GetRandomValue(taxes, random),
                 };
                 await _purchaseOrderRepository.CreateAsync(purchaseOrder);
+
+                int numberOfTaxes = random.Next(1, 4); // Select 1-3 random taxes
+                var selectedTaxes = taxes.OrderBy(x => random.Next()).Take(numberOfTaxes).ToList();
+
+                foreach (var taxId in selectedTaxes)
+                {
+                    var purchaseOrderTax = new PurchaseOrderTax
+                    {
+                        PurchaseOrderId = purchaseOrder.Id,
+                        TaxId = taxId
+                    };
+                    await _purchaseOrderTaxRepository.CreateAsync(purchaseOrderTax);
+                }
 
                 int numberOfProducts = random.Next(3, 6);
                 for (int i = 0; i < numberOfProducts; i++)

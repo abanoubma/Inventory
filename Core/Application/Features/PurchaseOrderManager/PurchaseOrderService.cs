@@ -22,13 +22,15 @@ public class PurchaseOrderService
         _unitOfWork = unitOfWork;
     }
 
+    // csharp
     public void Recalculate(string purchaseOrderId)
     {
         var purchaseOrder = _purchaseOrderRepository
             .GetQuery()
             .ApplyIsDeletedFilter()
             .Where(x => x.Id == purchaseOrderId)
-            .Include(x => x.Tax)
+            .Include(x => x.PurchaseOrderTaxes)
+                .ThenInclude(pt => pt.Tax)
             .SingleOrDefault();
 
         if (purchaseOrder == null)
@@ -40,14 +42,48 @@ public class PurchaseOrderService
             .Where(x => x.PurchaseOrderId == purchaseOrderId)
             .ToList();
 
-        purchaseOrder.BeforeTaxAmount = purchaseOrderItems.Sum(x => x.Total ?? 0);
+        // Use double (not decimal) to match existing double? properties
+        purchaseOrder.BeforeTaxAmount = purchaseOrderItems.Sum(x => x.Total ?? 0.0);
 
-        var taxPercentage = purchaseOrder.Tax?.Percentage ?? 0;
-        purchaseOrder.TaxAmount = (purchaseOrder.BeforeTaxAmount ?? 0) * taxPercentage / 100;
+        double totalPercentage = purchaseOrder.PurchaseOrderTaxes?
+            .Sum(pt => pt?.Tax?.Percentage ?? 0.0) ?? 0.0;
 
-        purchaseOrder.AfterTaxAmount = (purchaseOrder.BeforeTaxAmount ?? 0) + (purchaseOrder.TaxAmount ?? 0);
+        double before = purchaseOrder.BeforeTaxAmount ?? 0.0;
+
+        purchaseOrder.TaxAmount = before * totalPercentage / 100.0;
+        purchaseOrder.AfterTaxAmount = before + (purchaseOrder.TaxAmount ?? 0.0);
 
         _purchaseOrderRepository.Update(purchaseOrder);
         _unitOfWork.Save();
     }
+
+    //public void Recalculate(string purchaseOrderId)
+    //{
+    //    var purchaseOrder = _purchaseOrderRepository
+    //        .GetQuery()
+    //        .ApplyIsDeletedFilter()
+    //        .Where(x => x.Id == purchaseOrderId)
+    //        .Include(x => x.PurchaseOrderTaxes)
+    //        .ThenInclude(a=>a.Tax)
+    //        .SingleOrDefault();
+
+    //    if (purchaseOrder == null)
+    //        return;
+
+    //    var purchaseOrderItems = _purchaseOrderItemRepository
+    //        .GetQuery()
+    //        .ApplyIsDeletedFilter()
+    //        .Where(x => x.PurchaseOrderId == purchaseOrderId)
+    //        .ToList();
+
+    //    purchaseOrder.BeforeTaxAmount = purchaseOrderItems.Sum(x => x.Total ?? 0);
+
+    //    var taxPercentage = purchaseOrder.Tax?.Percentage ?? 0;
+    //    purchaseOrder.TaxAmount = (purchaseOrder.BeforeTaxAmount ?? 0) * taxPercentage / 100;
+
+    //    purchaseOrder.AfterTaxAmount = (purchaseOrder.BeforeTaxAmount ?? 0) + (purchaseOrder.TaxAmount ?? 0);
+
+    //    _purchaseOrderRepository.Update(purchaseOrder);
+    //    _unitOfWork.Save();
+    //}
 }

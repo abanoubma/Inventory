@@ -11,6 +11,7 @@ public class SalesOrderSeeder
 {
     private readonly SalesOrderService _salesOrderService;
     private readonly ICommandRepository<SalesOrder> _salesOrderRepository;
+    private readonly ICommandRepository<SalesOrderTax> _salesOrderTaxRepository;
     private readonly ICommandRepository<SalesOrderItem> _salesOrderItemRepository;
     private readonly ICommandRepository<Customer> _customerRepository;
     private readonly ICommandRepository<Tax> _taxRepository;
@@ -21,6 +22,7 @@ public class SalesOrderSeeder
     public SalesOrderSeeder(
         SalesOrderService salesOrderService,
         ICommandRepository<SalesOrder> salesOrderRepository,
+        ICommandRepository<SalesOrderTax> salesOrderTaxRepository,
         ICommandRepository<SalesOrderItem> salesOrderItemRepository,
         ICommandRepository<Customer> customerRepository,
         ICommandRepository<Tax> taxRepository,
@@ -31,6 +33,7 @@ public class SalesOrderSeeder
     {
         _salesOrderService = salesOrderService;
         _salesOrderRepository = salesOrderRepository;
+        _salesOrderTaxRepository = salesOrderTaxRepository;
         _salesOrderItemRepository = salesOrderItemRepository;
         _customerRepository = customerRepository;
         _taxRepository = taxRepository;
@@ -38,6 +41,57 @@ public class SalesOrderSeeder
         _numberSequenceService = numberSequenceService;
         _unitOfWork = unitOfWork;
     }
+
+    //public async Task GenerateDataAsync()
+    //{
+    //    var random = new Random();
+    //    var customers = await _customerRepository.GetQuery().Select(x => x.Id).ToListAsync();
+    //    var taxes = await _taxRepository.GetQuery().Select(x => x.Id).ToListAsync();
+    //    var products = await _productRepository.GetQuery().ToListAsync();
+
+    //    var dateFinish = DateTime.Now;
+    //    var dateStart = new DateTime(dateFinish.AddMonths(-12).Year, dateFinish.AddMonths(-12).Month, 1);
+
+    //    for (DateTime date = dateStart; date < dateFinish; date = date.AddMonths(1))
+    //    {
+    //        DateTime[] transactionDates = GetRandomDays(date.Year, date.Month, 6);
+
+    //        foreach (DateTime transDate in transactionDates)
+    //        {
+    //            var salesOrder = new SalesOrder
+    //            {
+    //                Number = _numberSequenceService.GenerateNumber(nameof(SalesOrder), "", "SO"),
+    //                OrderDate = transDate,
+    //                OrderStatus = (SalesOrderStatus)random.Next(0, Enum.GetNames(typeof(SalesOrderStatus)).Length),
+    //                CustomerId = GetRandomValue(customers, random),
+    //                TaxId = GetRandomValue(taxes, random),
+    //            };
+    //            await _salesOrderRepository.CreateAsync(salesOrder);
+
+    //            int numberOfProducts = random.Next(3, 6);
+    //            for (int i = 0; i < numberOfProducts; i++)
+    //            {
+    //                var qty = random.Next(2, 5);
+    //                var product = products[random.Next(products.Count)];
+    //                var salesOrderItem = new SalesOrderItem
+    //                {
+    //                    SalesOrderId = salesOrder.Id,
+    //                    ProductId = product.Id,
+    //                    Summary = product.Number,
+    //                    UnitPrice = product.UnitPrice,
+    //                    Quantity = qty,
+    //                    Total = product.UnitPrice * qty
+    //                };
+    //                await _salesOrderItemRepository.CreateAsync(salesOrderItem);
+    //            }
+
+    //            await _unitOfWork.SaveAsync();
+
+    //            _salesOrderService.Recalculate(salesOrder.Id);
+    //        }
+    //    }
+
+    //}
 
     public async Task GenerateDataAsync()
     {
@@ -61,9 +115,24 @@ public class SalesOrderSeeder
                     OrderDate = transDate,
                     OrderStatus = (SalesOrderStatus)random.Next(0, Enum.GetNames(typeof(SalesOrderStatus)).Length),
                     CustomerId = GetRandomValue(customers, random),
-                    TaxId = GetRandomValue(taxes, random),
+                    // Remove the TaxId assignment since we're using multiple taxes now
+                    // TaxId = GetRandomValue(taxes, random),
                 };
                 await _salesOrderRepository.CreateAsync(salesOrder);
+
+                // Add multiple taxes to the sales order
+                int numberOfTaxes = random.Next(1, 4); // Select 1-3 random taxes
+                var selectedTaxes = taxes.OrderBy(x => random.Next()).Take(numberOfTaxes).ToList();
+
+                foreach (var taxId in selectedTaxes)
+                {
+                    var salesOrderTax = new SalesOrderTax
+                    {
+                        SalesOrderId = salesOrder.Id,
+                        TaxId = taxId
+                    };
+                    await _salesOrderTaxRepository.CreateAsync(salesOrderTax);
+                }
 
                 int numberOfProducts = random.Next(3, 6);
                 for (int i = 0; i < numberOfProducts; i++)
@@ -87,7 +156,6 @@ public class SalesOrderSeeder
                 _salesOrderService.Recalculate(salesOrder.Id);
             }
         }
-
     }
 
     private static T GetRandomValue<T>(List<T> list, Random random)

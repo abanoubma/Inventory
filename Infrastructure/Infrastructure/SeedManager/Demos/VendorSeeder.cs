@@ -68,14 +68,14 @@ public class VendorSeeder
         foreach (var vendor in vendors)
         {
             vendor.Number = _numberSequenceService.GenerateNumber(nameof(Vendor), "", "VND");
-            vendor.VendorGroupId = GetRandomValue(groups, random);
-            vendor.VendorCategoryId = GetRandomValue(categories, random);
-            vendor.City = GetRandomString(cities, random);
-            vendor.Street = GetRandomString(streets, random);
-            vendor.State = GetRandomString(states, random);
-            vendor.ZipCode = GetRandomString(zipCodes, random);
+            //vendor.VendorGroupId = GetRandomValue(groups, random);
+            //vendor.VendorCategoryId = GetRandomValue(categories, random);
+            //vendor.City = GetRandomString(cities, random);
+            //vendor.Street = GetRandomString(streets, random);
+            //vendor.State = GetRandomString(states, random);
+            //vendor.ZipCode = GetRandomString(zipCodes, random);
             vendor.PhoneNumber = GetRandomString(phoneNumbers, random);
-            vendor.EmailAddress = GetRandomString(emails, random);
+            //vendor.EmailAddress = GetRandomString(emails, random);
 
             await _vendorRepository.CreateAsync(vendor);
         }

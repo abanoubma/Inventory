@@ -23,8 +23,8 @@ public class DataContext : IdentityDbContext<ApplicationUser>, IEntityDbSet
 
 
     public DbSet<NumberSequence> NumberSequence { get; set; }
-    public DbSet<CustomerGroup> CustomerGroup { get; set; }
-    public DbSet<CustomerCategory> CustomerCategory { get; set; }
+  //  public DbSet<CustomerGroup> CustomerGroup { get; set; }
+  //  public DbSet<CustomerCategory> CustomerCategory { get; set; }
     public DbSet<VendorGroup> VendorGroup { get; set; }
     public DbSet<VendorCategory> VendorCategory { get; set; }
     public DbSet<Warehouse> Warehouse { get; set; }
@@ -37,6 +37,11 @@ public class DataContext : IdentityDbContext<ApplicationUser>, IEntityDbSet
     public DbSet<VendorContact> VendorContact { get; set; }
     public DbSet<Tax> Tax { get; set; }
     public DbSet<SalesOrder> SalesOrder { get; set; }
+    public DbSet<SalesOrderTax> SalesOrderTaxes { get; set; }
+    public DbSet<PurchaseOrderTax> PurchaseOrderTaxes { get; set; }
+
+
+
     public DbSet<SalesOrderItem> SalesOrderItem { get; set; }
     public DbSet<PurchaseOrder> PurchaseOrder { get; set; }
     public DbSet<PurchaseOrderItem> PurchaseOrderItem { get; set; }
@@ -67,7 +72,7 @@ public class DataContext : IdentityDbContext<ApplicationUser>, IEntityDbSet
 
         modelBuilder.ApplyConfiguration(new NumberSequenceConfiguration());
         modelBuilder.ApplyConfiguration(new CustomerGroupConfiguration());
-        modelBuilder.ApplyConfiguration(new CustomerCategoryConfiguration());
+      //  modelBuilder.ApplyConfiguration(new CustomerCategoryConfiguration());
         modelBuilder.ApplyConfiguration(new VendorGroupConfiguration());
         modelBuilder.ApplyConfiguration(new VendorCategoryConfiguration());
         modelBuilder.ApplyConfiguration(new WarehouseConfiguration());
@@ -80,6 +85,8 @@ public class DataContext : IdentityDbContext<ApplicationUser>, IEntityDbSet
         modelBuilder.ApplyConfiguration(new VendorContactConfiguration());
         modelBuilder.ApplyConfiguration(new TaxConfiguration());
         modelBuilder.ApplyConfiguration(new SalesOrderConfiguration());
+        modelBuilder.ApplyConfiguration(new SalesOrderTaxesConfiguration());
+        modelBuilder.ApplyConfiguration(new PurchaseOrderTaxesConfiguration());
         modelBuilder.ApplyConfiguration(new SalesOrderItemConfiguration());
         modelBuilder.ApplyConfiguration(new PurchaseOrderConfiguration());
         modelBuilder.ApplyConfiguration(new PurchaseOrderItemConfiguration());
