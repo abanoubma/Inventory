@@ -414,6 +414,7 @@
                         showSelectAll: true,
                         showDropDownIcon: true,
                         filterBarPlaceholder: 'Search Taxes',
+                        value: state.taxId || [],
                         change: function (e) {
                             // Store as array of values for multiple selection
                             state.taxId = e.value;
