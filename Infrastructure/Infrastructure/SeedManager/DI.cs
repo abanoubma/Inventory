@@ -54,6 +54,7 @@ public static class DI
     public static IServiceCollection RegisterDemoSeedManager(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddScoped<TaxSeeder>();
+        services.AddScoped<VatSeeder>();
         services.AddScoped<UserSeeder>();
         //services.AddScoped<CustomerCategorySeeder>();
         //services.AddScoped<CustomerGroupSeeder>();
@@ -100,6 +101,10 @@ public static class DI
 
             //var customerGroupSeeder = serviceProvider.GetRequiredService<CustomerGroupSeeder>();
             //customerGroupSeeder.GenerateDataAsync().Wait();
+
+            var vatSeeder = serviceProvider.GetRequiredService<VatSeeder>();
+            vatSeeder.GenerateDataAsync().Wait();
+
 
             var customerSeeder = serviceProvider.GetRequiredService<CustomerSeeder>();
             customerSeeder.GenerateDataAsync().Wait();

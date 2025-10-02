@@ -9,6 +9,8 @@ public class Tax : BaseEntity
     public string? Description { get; set; }
     public virtual ICollection<SalesOrderTax> SalesOrderTaxes { get; set; } = new List<SalesOrderTax>();
     public virtual ICollection<PurchaseOrderTax> PurchaseOrderTaxes { get; set; } = new List<PurchaseOrderTax>();
+    public ICollection<Product>? Products { get; set; } = new List<Product>();
+
 
 
 }

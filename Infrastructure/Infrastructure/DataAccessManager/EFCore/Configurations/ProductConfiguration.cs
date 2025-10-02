@@ -1,5 +1,6 @@
 ﻿using Domain.Entities;
 using Infrastructure.DataAccessManager.EFCore.Common;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using static Domain.Common.Constants;
 
@@ -21,6 +22,16 @@ public class ProductConfiguration : BaseEntityConfiguration<Product>
 
         builder.HasIndex(e => e.Name);
         builder.HasIndex(e => e.Number);
+
+        builder.HasOne(p => p.Vat)
+          .WithMany(v => v.Products)
+          .HasForeignKey(p => p.VatId)
+          .OnDelete(DeleteBehavior.Restrict); // or your preferred delete behavior
+
+        builder.HasOne(p => p.Tax)
+            .WithMany(t => t.Products)
+            .HasForeignKey(p => p.TaxId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
 

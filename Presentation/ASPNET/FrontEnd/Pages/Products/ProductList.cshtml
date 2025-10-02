@@ -11,7 +11,6 @@
             </div>
         </div>
     </div>
-
     <div class="modal fade" ref="mainModalRef" id="MainModal" aria-hidden="true" tabindex="-1" data-bs-focus="false" data-bs-backdrop="static">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
@@ -63,6 +62,19 @@
                                                     <input v-model="state.physical" id="Physical" name="Physical" type="checkbox" class="form-check-input">
                                                     <label for="Physical" class="form-check-label">Is Physical Product?</label>
                                                 </div>
+                                            </div>
+                                        </div>
+                                        <!-- Add VAT and Tax dropdowns -->
+                                        <div class="row mb-2">
+                                            <div class="col-md-6">
+                                                <label for="VatId">VAT</label>
+                                                <div ref="vatIdRef"></div>
+                                                <label class="text-danger">{{ state.errors.vatId }}</label>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="TaxId">Tax</label>
+                                                <div ref="taxIdRef"></div>
+                                                <label class="text-danger">{{ state.errors.taxId }}</label>
                                             </div>
                                         </div>
                                         <div class="row mb-2">

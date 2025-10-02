@@ -21,6 +21,8 @@ public class CreateProductRequest : IRequest<CreateProductResult>
     public string? UnitMeasureId { get; init; }
     public string? ProductGroupId { get; init; }
     public string? CreatedById { get; init; }
+    public string? VatId { get; init; }        // Added VAT
+    public string? TaxId { get; init; }        // Added Tax
 }
 
 public class CreateProductValidator : AbstractValidator<CreateProductRequest>
@@ -32,6 +34,8 @@ public class CreateProductValidator : AbstractValidator<CreateProductRequest>
         RuleFor(x => x.Physical).NotEmpty();
         RuleFor(x => x.UnitMeasureId).NotEmpty();
         RuleFor(x => x.ProductGroupId).NotEmpty();
+        RuleFor(x => x.VatId).NotEmpty();      // Added VAT validation
+        RuleFor(x => x.TaxId).NotEmpty();      // Added Tax validation
     }
 }
 
@@ -64,6 +68,8 @@ public class CreateProductHandler : IRequestHandler<CreateProductRequest, Create
         entity.Description = request.Description;
         entity.UnitMeasureId = request.UnitMeasureId;
         entity.ProductGroupId = request.ProductGroupId;
+        entity.VatId = request.VatId;          // Added VAT
+        entity.TaxId = request.TaxId;          // Added 
 
         await _repository.CreateAsync(entity, cancellationToken);
         await _unitOfWork.SaveAsync(cancellationToken);

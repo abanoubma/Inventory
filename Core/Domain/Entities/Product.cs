@@ -13,4 +13,8 @@ public class Product : BaseEntity
     public UnitMeasure? UnitMeasure { get; set; }
     public string? ProductGroupId { get; set; }
     public ProductGroup? ProductGroup { get; set; }
+    public string? VatId { get; set; }
+    public Vat? Vat { get; set; }
+    public string? TaxId { get; set; }
+    public Tax? Tax { get; set; }
 }

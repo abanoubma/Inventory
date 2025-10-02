@@ -5,6 +5,8 @@
             deleteMode: false,
             productGroupListLookupData: [],
             unitMeasureListLookupData: [],
+            vatListLookupData: [],
+            taxListLookupData: [],
             mainTitle: null,
             id: '',
             name: '',
@@ -13,12 +15,16 @@
             description: '',
             productGroupId: null,
             unitMeasureId: null,
+            vatId: null,
+            taxId: null,
             physical: false,
             errors: {
                 name: '',
                 unitPrice: '',
                 productGroupId: '',
-                unitMeasureId: ''
+                unitMeasureId: '',
+                vatId: '',
+                taxId: ''
             },
             isSubmitting: false
         });
@@ -27,137 +33,45 @@
         const mainModalRef = Vue.ref(null);
         const productGroupIdRef = Vue.ref(null);
         const unitMeasureIdRef = Vue.ref(null);
+        const vatIdRef = Vue.ref(null);
+        const taxIdRef = Vue.ref(null);
         const nameRef = Vue.ref(null);
         const numberRef = Vue.ref(null);
         const unitPriceRef = Vue.ref(null);
 
-        const validateForm = function () {
-            state.errors.name = '';
-            state.errors.unitPrice = '';
-            state.errors.productGroupId = '';
-            state.errors.unitMeasureId = '';
-
-            let isValid = true;
-
-            if (!state.name) {
-                state.errors.name = 'Name is required.';
-                isValid = false;
-            }
-            if (!state.unitPrice) {
-                state.errors.unitPrice = 'Unit price is required.';
-                isValid = false;
-            } else if (!/^\d+(\.\d{1,2})?$/.test(state.unitPrice)) {
-                state.errors.unitPrice = 'Unit price must be a numeric value with up to two decimal places.';
-                isValid = false;
-            }
-            if (!state.productGroupId) {
-                state.errors.productGroupId = 'ProductGroup is required.';
-                isValid = false;
-            }
-            if (!state.unitMeasureId) {
-                state.errors.unitMeasureId = 'UnitMeasure is required.';
-                isValid = false;
-            }
-
-            return isValid;
-        };
-
-        const resetFormState = () => {
-            state.id = '';
-            state.name = '';
-            state.number = '';
-            state.unitPrice = '';
-            state.description = '';
-            state.productGroupId = null;
-            state.unitMeasureId = null;
-            state.physical = false;
-            state.errors = {
-                name: '',
-                unitPrice: '',
-                productGroupId: '',
-                unitMeasureId: ''
-            };
-        };
-
-        const services = {
-            getMainData: async () => {
-                try {
-                    const response = await AxiosManager.get('/Product/GetProductList', {});
-                    return response;
-                } catch (error) {
-                    throw error;
-                }
-            },
-            createMainData: async (name, unitPrice, physical, description, productGroupId, unitMeasureId, createdById) => {
-                try {
-                    const response = await AxiosManager.post('/Product/CreateProduct', {
-                        name, unitPrice, physical, description, productGroupId, unitMeasureId, createdById
+        // Define mainModal FIRST to ensure it's available everywhere
+        const mainModal = {
+            obj: null,
+            create: () => {
+                if (mainModalRef.value) {
+                    mainModal.obj = new bootstrap.Modal(mainModalRef.value, {
+                        backdrop: 'static',
+                        keyboard: false
                     });
-                    return response;
-                } catch (error) {
-                    throw error;
+                    console.log('Modal created successfully');
+                } else {
+                    console.error('Modal element not found');
                 }
             },
-            updateMainData: async (id, name, unitPrice, physical, description, productGroupId, unitMeasureId, updatedById) => {
-                try {
-                    const response = await AxiosManager.post('/Product/UpdateProduct', {
-                        id, name, unitPrice, physical, description, productGroupId, unitMeasureId, updatedById
-                    });
-                    return response;
-                } catch (error) {
-                    throw error;
+            show: () => {
+                if (mainModal.obj) {
+                    mainModal.obj.show();
+                } else {
+                    console.error('Modal object is null');
                 }
             },
-            deleteMainData: async (id, deletedById) => {
-                try {
-                    const response = await AxiosManager.post('/Product/DeleteProduct', {
-                        id, deletedById
-                    });
-                    return response;
-                } catch (error) {
-                    throw error;
+            hide: () => {
+                if (mainModal.obj) {
+                    mainModal.obj.hide();
                 }
-            },
-            getProductGroupListLookupData: async () => {
-                try {
-                    const response = await AxiosManager.get('/ProductGroup/GetProductGroupList', {});
-                    return response;
-                } catch (error) {
-                    throw error;
-                }
-            },
-            getUnitMeasureListLookupData: async () => {
-                try {
-                    const response = await AxiosManager.get('/UnitMeasure/GetUnitMeasureList', {});
-                    return response;
-                } catch (error) {
-                    throw error;
-                }
-            },
+            }
         };
 
-        const methods = {
-            populateProductGroupListLookupData: async () => {
-                const response = await services.getProductGroupListLookupData();
-                state.productGroupListLookupData = response?.data?.content?.data;
-            },
-            populateUnitMeasureListLookupData: async () => {
-                const response = await services.getUnitMeasureListLookupData();
-                state.unitMeasureListLookupData = response?.data?.content?.data;
-            },
-            populateMainData: async () => {
-                const response = await services.getMainData();
-                state.mainData = response?.data?.content?.data.map(item => ({
-                    ...item,
-                    createdAtUtc: new Date(item.createdAtUtc)
-                }));
-            },
-        };
-
+        // Define lookup objects
         const productGroupListLookup = {
             obj: null,
             create: () => {
-                if (state.productGroupListLookupData && Array.isArray(state.productGroupListLookupData)) {
+                if (state.productGroupListLookupData && Array.isArray(state.productGroupListLookupData) && state.productGroupListLookupData.length > 0) {
                     productGroupListLookup.obj = new ej.dropdowns.DropDownList({
                         dataSource: state.productGroupListLookupData,
                         fields: { value: 'id', text: 'name' },
@@ -169,7 +83,7 @@
                     });
                     productGroupListLookup.obj.appendTo(productGroupIdRef.value);
                 } else {
-                    console.error('ProductGroup list lookup data is not available or invalid.');
+                    console.warn('ProductGroup list lookup data is not available or invalid.');
                 }
             },
             refresh: () => {
@@ -182,7 +96,7 @@
         const unitMeasureListLookup = {
             obj: null,
             create: () => {
-                if (state.unitMeasureListLookupData && Array.isArray(state.unitMeasureListLookupData)) {
+                if (state.unitMeasureListLookupData && Array.isArray(state.unitMeasureListLookupData) && state.unitMeasureListLookupData.length > 0) {
                     unitMeasureListLookup.obj = new ej.dropdowns.DropDownList({
                         dataSource: state.unitMeasureListLookupData,
                         fields: { value: 'id', text: 'name' },
@@ -194,12 +108,86 @@
                     });
                     unitMeasureListLookup.obj.appendTo(unitMeasureIdRef.value);
                 } else {
-                    console.error('UnitMeasure list lookup data is not available or invalid.');
+                    console.warn('UnitMeasure list lookup data is not available or invalid.');
                 }
             },
             refresh: () => {
                 if (unitMeasureListLookup.obj) {
                     unitMeasureListLookup.obj.value = state.unitMeasureId;
+                }
+            },
+        };
+
+        const vatListLookup = {
+            obj: null,
+            create: () => {
+                if (state.vatListLookupData && Array.isArray(state.vatListLookupData) && state.vatListLookupData.length > 0) {
+                    vatListLookup.obj = new ej.dropdowns.DropDownList({
+                        dataSource: state.vatListLookupData,
+                        fields: { value: 'id', text: 'name' },
+                        placeholder: 'Select a VAT',
+                        popupHeight: '200px',
+                        change: (e) => {
+                            state.vatId = e.value;
+                        }
+                    });
+                    vatListLookup.obj.appendTo(vatIdRef.value);
+                } else {
+                    console.warn('VAT list lookup data is not available or invalid.');
+                    // Create empty dropdown as fallback
+                    vatListLookup.obj = new ej.dropdowns.DropDownList({
+                        dataSource: [],
+                        fields: { value: 'id', text: 'name' },
+                        placeholder: 'No VAT data available',
+                        popupHeight: '200px',
+                        enabled: false,
+                        change: (e) => {
+                            state.vatId = e.value;
+                        }
+                    });
+                    vatListLookup.obj.appendTo(vatIdRef.value);
+                }
+            },
+            refresh: () => {
+                if (vatListLookup.obj) {
+                    vatListLookup.obj.value = state.vatId;
+                }
+            },
+        };
+
+        const taxListLookup = {
+            obj: null,
+            create: () => {
+                if (state.taxListLookupData && Array.isArray(state.taxListLookupData) && state.taxListLookupData.length > 0) {
+                    taxListLookup.obj = new ej.dropdowns.DropDownList({
+                        dataSource: state.taxListLookupData,
+                        fields: { value: 'id', text: 'name' },
+                        placeholder: 'Select a Tax',
+                        popupHeight: '200px',
+                        change: (e) => {
+                            state.taxId = e.value;
+                        }
+                    });
+                    taxListLookup.obj.appendTo(taxIdRef.value);
+                } else {
+                    console.warn('Tax list lookup data is not available or invalid.');
+                    // Create empty dropdown as fallback
+                    taxListLookup.obj = new ej.dropdowns.DropDownList({
+                        dataSource: [],
+                        fields: { value: 'id', text: 'name' },
+                        placeholder: 'No Tax data available',
+                        popupHeight: '200px',
+                        enabled: false,
+                        change: (e) => {
+                            state.taxId = e.value;
+                        }
+                    });
+                    taxListLookup.obj.appendTo(taxIdRef.value);
+                }
+            },
+            refresh: () => {
+                if (taxListLookup.obj) {
+                    taxListLookup.obj.value = state.taxId;
                 }
             },
         };
@@ -254,44 +242,206 @@
             }
         };
 
-        Vue.watch(
-            () => state.name,
-            (newVal, oldVal) => {
-                state.errors.name = '';
-                nameText.refresh();
-            }
-        );
+        const validateForm = function () {
+            state.errors.name = '';
+            state.errors.unitPrice = '';
+            state.errors.productGroupId = '';
+            state.errors.unitMeasureId = '';
+            state.errors.vatId = '';
+            state.errors.taxId = '';
 
-        Vue.watch(
-            () => state.number,
-            (newVal, oldVal) => {
-                numberText.refresh();
-            }
-        );
+            let isValid = true;
 
-        Vue.watch(
-            () => state.unitPrice,
-            (newVal, oldVal) => {
-                state.errors.unitPrice = '';
-                unitPriceNumber.refresh();
+            if (!state.name) {
+                state.errors.name = 'Name is required.';
+                isValid = false;
             }
-        );
+            if (!state.unitPrice) {
+                state.errors.unitPrice = 'Unit price is required.';
+                isValid = false;
+            } else if (!/^\d+(\.\d{1,2})?$/.test(state.unitPrice)) {
+                state.errors.unitPrice = 'Unit price must be a numeric value with up to two decimal places.';
+                isValid = false;
+            }
+            if (!state.productGroupId) {
+                state.errors.productGroupId = 'ProductGroup is required.';
+                isValid = false;
+            }
+            if (!state.unitMeasureId) {
+                state.errors.unitMeasureId = 'UnitMeasure is required.';
+                isValid = false;
+            }
+            // Make VAT and Tax optional temporarily until APIs are ready
+            if (!state.vatId) {
+                console.warn('VAT is not selected, but proceeding anyway');
+                // state.errors.vatId = 'VAT is required.';
+                // isValid = false;
+            }
+            if (!state.taxId) {
+                console.warn('Tax is not selected, but proceeding anyway');
+                // state.errors.taxId = 'Tax is required.';
+                // isValid = false;
+            }
 
-        Vue.watch(
-            () => state.productGroupId,
-            (newVal, oldVal) => {
-                state.errors.productGroupId = '';
-                productGroupListLookup.refresh();
-            }
-        );
+            return isValid;
+        };
 
-        Vue.watch(
-            () => state.unitMeasureId,
-            (newVal, oldVal) => {
-                state.errors.unitMeasureId = '';
-                unitMeasureListLookup.refresh();
-            }
-        );
+        const resetFormState = () => {
+            state.id = '';
+            state.name = '';
+            state.number = '';
+            state.unitPrice = '';
+            state.description = '';
+            state.productGroupId = null;
+            state.unitMeasureId = null;
+            state.vatId = null;
+            state.taxId = null;
+            state.physical = false;
+            state.errors = {
+                name: '',
+                unitPrice: '',
+                productGroupId: '',
+                unitMeasureId: '',
+                vatId: '',
+                taxId: ''
+            };
+        };
+
+        const services = {
+            getMainData: async () => {
+                try {
+                    const response = await AxiosManager.get('/Product/GetProductList', {});
+                    return response;
+                } catch (error) {
+                    throw error;
+                }
+            },
+            createMainData: async (name, unitPrice, physical, description, productGroupId, unitMeasureId, vatId, taxId, createdById) => {
+                try {
+                    const response = await AxiosManager.post('/Product/CreateProduct', {
+                        name, unitPrice, physical, description, productGroupId, unitMeasureId, vatId, taxId, createdById
+                    });
+                    return response;
+                } catch (error) {
+                    throw error;
+                }
+            },
+            updateMainData: async (id, name, unitPrice, physical, description, productGroupId, unitMeasureId, vatId, taxId, updatedById) => {
+                try {
+                    const response = await AxiosManager.post('/Product/UpdateProduct', {
+                        id, name, unitPrice, physical, description, productGroupId, unitMeasureId, vatId, taxId, updatedById
+                    });
+                    return response;
+                } catch (error) {
+                    throw error;
+                }
+            },
+            deleteMainData: async (id, deletedById) => {
+                try {
+                    const response = await AxiosManager.post('/Product/DeleteProduct', {
+                        id, deletedById
+                    });
+                    return response;
+                } catch (error) {
+                    throw error;
+                }
+            },
+            getProductGroupListLookupData: async () => {
+                try {
+                    const response = await AxiosManager.get('/ProductGroup/GetProductGroupList', {});
+                    return response;
+                } catch (error) {
+                    throw error;
+                }
+            },
+            getUnitMeasureListLookupData: async () => {
+                try {
+                    const response = await AxiosManager.get('/UnitMeasure/GetUnitMeasureList', {});
+                    return response;
+                } catch (error) {
+                    throw error;
+                }
+            },
+            getVatListLookupData: async () => {
+                try {
+                    const response = await AxiosManager.get('/Vat/GetVatList', {});
+                    return response;
+                } catch (error) {
+                    // Return empty array instead of throwing to prevent breaking the flow
+                    console.warn('VAT API not available, returning empty data');
+                    return { data: { content: { data: [] } } };
+                }
+            },
+            getTaxListLookupData: async () => {
+                try {
+                    const response = await AxiosManager.get('/Tax/GetTaxList', {});
+                    return response;
+                } catch (error) {
+                    // Return empty array instead of throwing to prevent breaking the flow
+                    console.warn('Tax API not available, returning empty data');
+                    return { data: { content: { data: [] } } };
+                }
+            },
+        };
+
+        const methods = {
+            populateProductGroupListLookupData: async () => {
+                try {
+                    const response = await services.getProductGroupListLookupData();
+                    state.productGroupListLookupData = response?.data?.content?.data || [];
+                } catch (error) {
+                    console.error('Error loading product groups:', error);
+                    state.productGroupListLookupData = [];
+                }
+            },
+            populateUnitMeasureListLookupData: async () => {
+                try {
+                    const response = await services.getUnitMeasureListLookupData();
+                    state.unitMeasureListLookupData = response?.data?.content?.data || [];
+                } catch (error) {
+                    console.error('Error loading unit measures:', error);
+                    state.unitMeasureListLookupData = [];
+                }
+            },
+            populateVatListLookupData: async () => {
+                try {
+                    const response = await services.getVatListLookupData();
+                    console.log('response', response);
+                    state.vatListLookupData = response?.data?.content?.data || [];
+                    console.log('state.vatListLookupData', state.vatListLookupData)
+                    if (state.vatListLookupData.length === 0) {
+                        console.warn('No VAT data available from API');
+                    }
+                } catch (error) {
+                    console.error('Error loading VAT data:', error);
+                    state.vatListLookupData = [];
+                }
+            },
+            populateTaxListLookupData: async () => {
+                try {
+                    const response = await services.getTaxListLookupData();
+                    state.taxListLookupData = response?.data?.content?.data || [];
+                    if (state.taxListLookupData.length === 0) {
+                        console.warn('No Tax data available from API');
+                    }
+                } catch (error) {
+                    console.error('Error loading Tax data:', error);
+                    state.taxListLookupData = [];
+                }
+            },
+            populateMainData: async () => {
+                try {
+                    const response = await services.getMainData();
+                    state.mainData = response?.data?.content?.data.map(item => ({
+                        ...item,
+                        createdAtUtc: new Date(item.createdAtUtc)
+                    })) || [];
+                } catch (error) {
+                    console.error('Error loading main data:', error);
+                    state.mainData = [];
+                }
+            },
+        };
 
         const handler = {
             handleSubmit: async function () {
@@ -304,10 +454,10 @@
                     }
 
                     const response = state.id === ''
-                        ? await services.createMainData(state.name, state.unitPrice, state.physical, state.description, state.productGroupId, state.unitMeasureId, StorageManager.getUserId())
+                        ? await services.createMainData(state.name, state.unitPrice, state.physical, state.description, state.productGroupId, state.unitMeasureId, state.vatId, state.taxId, StorageManager.getUserId())
                         : state.deleteMode
                             ? await services.deleteMainData(state.id, StorageManager.getUserId())
-                            : await services.updateMainData(state.id, state.name, state.unitPrice, state.physical, state.description, state.productGroupId, state.unitMeasureId, StorageManager.getUserId());
+                            : await services.updateMainData(state.id, state.name, state.unitPrice, state.physical, state.description, state.productGroupId, state.unitMeasureId, state.vatId, state.taxId, StorageManager.getUserId());
 
                     if (response.data.code === 200) {
                         await methods.populateMainData();
@@ -322,6 +472,8 @@
                             state.description = response?.data?.content?.data.description ?? '';
                             state.productGroupId = response?.data?.content?.data.productGroupId ?? '';
                             state.unitMeasureId = response?.data?.content?.data.unitMeasureId ?? '';
+                            state.vatId = response?.data?.content?.data.vatId ?? '';
+                            state.taxId = response?.data?.content?.data.taxId ?? '';
                             state.physical = response?.data?.content?.data.physical ?? false;
 
                             Swal.fire({
@@ -332,7 +484,7 @@
                                 showConfirmButton: false
                             });
                             setTimeout(() => {
-                                mainModal.obj.hide();
+                                mainModal.hide();
                             }, 2000);
 
                         } else {
@@ -344,7 +496,7 @@
                                 showConfirmButton: false
                             });
                             setTimeout(() => {
-                                mainModal.obj.hide();
+                                mainModal.hide();
                                 resetFormState();
                             }, 2000);
                         }
@@ -371,38 +523,7 @@
             },
         };
 
-        Vue.onMounted(async () => {
-            try {
-                await SecurityManager.authorizePage(['Products']);
-                await SecurityManager.validateToken();
-
-                await methods.populateMainData();
-                await mainGrid.create(state.mainData);
-                await methods.populateProductGroupListLookupData();
-                productGroupListLookup.create();
-                await methods.populateUnitMeasureListLookupData();
-                unitMeasureListLookup.create();
-
-                nameText.create();
-                numberText.create();
-                unitPriceNumber.create();
-
-                mainModal.create();
-                mainModalRef.value?.addEventListener('hidden.bs.modal', () => {
-                    resetFormState();
-                });
-
-            } catch (e) {
-                console.error('page init error:', e);
-            } finally {
-                
-            }
-        });
-
-        Vue.onUnmounted(() => {
-            mainModalRef.value?.removeEventListener('hidden.bs.modal', resetFormState);
-        });
-
+        // Define mainGrid after all dependencies are defined
         const mainGrid = {
             obj: null,
             create: async (dataSource) => {
@@ -437,6 +558,8 @@
                         { field: 'productGroupName', headerText: 'Product Group', width: 150, minWidth: 150 },
                         { field: 'unitPrice', headerText: 'Unit Price', width: 150, minWidth: 150, format: 'N2' },
                         { field: 'unitMeasureName', headerText: 'Unit Measure', width: 150, minWidth: 150 },
+                        { field: 'vatName', headerText: 'VAT', width: 150, minWidth: 150 },
+                        { field: 'taxName', headerText: 'Tax', width: 150, minWidth: 150 },
                         { field: 'physical', headerText: 'Physical Product', width: 200, minWidth: 200, textAlign: 'Center', type: 'boolean', displayAsCheckBox: true },
                         { field: 'createdAtUtc', headerText: 'Created At UTC', width: 150, format: 'yyyy-MM-dd HH:mm' }
                     ],
@@ -451,7 +574,7 @@
                     beforeDataBound: () => { },
                     dataBound: function () {
                         mainGrid.obj.toolbarModule.enableItems(['EditCustom', 'DeleteCustom'], false);
-                        mainGrid.obj.autoFitColumns(['number', 'name', 'productGroupName', 'unitPrice', 'unitMeasureName', 'physical', 'createdAtUtc']);
+                        mainGrid.obj.autoFitColumns(['number', 'name', 'productGroupName', 'unitPrice', 'unitMeasureName', 'vatName', 'taxName', 'physical', 'createdAtUtc']);
                     },
                     excelExportComplete: () => { },
                     rowSelected: () => {
@@ -482,7 +605,7 @@
                             state.deleteMode = false;
                             state.mainTitle = 'Add Product';
                             resetFormState();
-                            mainModal.obj.show();
+                            mainModal.show();
                         }
 
                         if (args.item.id === 'EditCustom') {
@@ -497,8 +620,10 @@
                                 state.description = selectedRecord.description ?? '';
                                 state.productGroupId = selectedRecord.productGroupId ?? '';
                                 state.unitMeasureId = selectedRecord.unitMeasureId ?? '';
+                                state.vatId = selectedRecord.vatId ?? '';
+                                state.taxId = selectedRecord.taxId ?? '';
                                 state.physical = selectedRecord.physical ?? false;
-                                mainModal.obj.show();
+                                mainModal.show();
                             }
                         }
 
@@ -514,8 +639,10 @@
                                 state.description = selectedRecord.description ?? '';
                                 state.productGroupId = selectedRecord.productGroupId ?? '';
                                 state.unitMeasureId = selectedRecord.unitMeasureId ?? '';
+                                state.vatId = selectedRecord.vatId ?? '';
+                                state.taxId = selectedRecord.taxId ?? '';
                                 state.physical = selectedRecord.physical ?? false;
-                                mainModal.obj.show();
+                                mainModal.show();
                             }
                         }
                     }
@@ -524,25 +651,144 @@
                 mainGrid.obj.appendTo(mainGridRef.value);
             },
             refresh: () => {
-                mainGrid.obj.setProperties({ dataSource: state.mainData });
+                if (mainGrid.obj) {
+                    mainGrid.obj.setProperties({ dataSource: state.mainData });
+                }
             }
         };
 
-        const mainModal = {
-            obj: null,
-            create: () => {
-                mainModal.obj = new bootstrap.Modal(mainModalRef.value, {
-                    backdrop: 'static',
-                    keyboard: false
+        Vue.watch(
+            () => state.name,
+            (newVal, oldVal) => {
+                state.errors.name = '';
+                if (nameText.obj) {
+                    nameText.refresh();
+                }
+            }
+        );
+
+        Vue.watch(
+            () => state.number,
+            (newVal, oldVal) => {
+                if (numberText.obj) {
+                    numberText.refresh();
+                }
+            }
+        );
+
+        Vue.watch(
+            () => state.unitPrice,
+            (newVal, oldVal) => {
+                state.errors.unitPrice = '';
+                if (unitPriceNumber.obj) {
+                    unitPriceNumber.refresh();
+                }
+            }
+        );
+
+        Vue.watch(
+            () => state.productGroupId,
+            (newVal, oldVal) => {
+                state.errors.productGroupId = '';
+                if (productGroupListLookup.obj) {
+                    productGroupListLookup.refresh();
+                }
+            }
+        );
+
+        Vue.watch(
+            () => state.unitMeasureId,
+            (newVal, oldVal) => {
+                state.errors.unitMeasureId = '';
+                if (unitMeasureListLookup.obj) {
+                    unitMeasureListLookup.refresh();
+                }
+            }
+        );
+
+        Vue.watch(
+            () => state.vatId,
+            (newVal, oldVal) => {
+                state.errors.vatId = '';
+                if (vatListLookup.obj) {
+                    vatListLookup.refresh();
+                }
+            }
+        );
+
+        Vue.watch(
+            () => state.taxId,
+            (newVal, oldVal) => {
+                state.errors.taxId = '';
+                if (taxListLookup.obj) {
+                    taxListLookup.refresh();
+                }
+            }
+        );
+
+        Vue.onMounted(async () => {
+            try {
+                await SecurityManager.authorizePage(['Products']);
+                await SecurityManager.validateToken();
+
+                // Initialize modal FIRST before anything else
+                mainModal.create();
+
+                // Load main data and create grid
+                await methods.populateMainData();
+                await mainGrid.create(state.mainData);
+
+                // Load lookup data
+                await methods.populateProductGroupListLookupData();
+                productGroupListLookup.create();
+
+                await methods.populateUnitMeasureListLookupData();
+                unitMeasureListLookup.create();
+
+                await methods.populateVatListLookupData();
+                vatListLookup.create();
+
+                await methods.populateTaxListLookupData();
+                taxListLookup.create();
+
+                // Create form controls
+                nameText.create();
+                numberText.create();
+                unitPriceNumber.create();
+
+                // Add modal event listener
+                if (mainModalRef.value) {
+                    mainModalRef.value.addEventListener('hidden.bs.modal', () => {
+                        resetFormState();
+                    });
+                }
+
+                console.log('Page initialization completed successfully');
+
+            } catch (e) {
+                console.error('Page init error:', e);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Initialization Error',
+                    text: 'Failed to initialize the page. Please refresh and try again.',
+                    confirmButtonText: 'OK'
                 });
             }
-        };
+        });
+
+        Vue.onUnmounted(() => {
+            if (mainModalRef.value) {
+                mainModalRef.value.removeEventListener('hidden.bs.modal', resetFormState);
+            }
+        });
 
         return {
             mainGridRef,
             mainModalRef,
             productGroupIdRef,
             unitMeasureIdRef,
+            vatIdRef,
+            taxIdRef,
             nameRef,
             numberRef,
             unitPriceRef,

@@ -20,6 +20,12 @@ public record GetProductListDto
     public string? ProductGroupId { get; init; }
     public string? ProductGroupName { get; init; }
     public DateTime? CreatedAtUtc { get; init; }
+    public string? VatId { get; init; }
+    public string? VatName { get; init; }
+    public double? VatPercentage { get; init; }  // Add this
+    public string? TaxId { get; init; }
+    public string? TaxName { get; init; }
+    public double? TaxPercentage { get; init; }  // Add this
 }
 
 public class GetProductListProfile : Profile
@@ -34,9 +40,37 @@ public class GetProductListProfile : Profile
             .ForMember(
                 dest => dest.ProductGroupName,
                 opt => opt.MapFrom(src => src.ProductGroup != null ? src.ProductGroup.Name : string.Empty)
+            )
+            .ForMember(
+                dest => dest.VatName,
+                opt => opt.MapFrom(src => src.Vat != null ? src.Vat.Name : "Not Set")
+            )
+            .ForMember(
+                dest => dest.VatPercentage,
+                opt => opt.MapFrom(src => src.Vat != null ? src.Vat.Percentage : 0.0)
+            )
+            .ForMember(
+                dest => dest.TaxName,
+                opt => opt.MapFrom(src => src.Tax != null ? src.Tax.Name : "Not Set")
+            )
+            .ForMember(
+                dest => dest.TaxPercentage,
+                opt => opt.MapFrom(src => src.Tax != null ? src.Tax.Percentage : 0.0)
             );
-
     }
+    //public GetProductListProfile()
+    //{
+    //    CreateMap<Product, GetProductListDto>()
+    //        .ForMember(
+    //            dest => dest.UnitMeasureName,
+    //            opt => opt.MapFrom(src => src.UnitMeasure != null ? src.UnitMeasure.Name : string.Empty)
+    //        )
+    //        .ForMember(
+    //            dest => dest.ProductGroupName,
+    //            opt => opt.MapFrom(src => src.ProductGroup != null ? src.ProductGroup.Name : string.Empty)
+    //        );
+
+    //}
 }
 
 public class GetProductListResult
@@ -69,6 +103,8 @@ public class GetProductListHandler : IRequestHandler<GetProductListRequest, GetP
             .ApplyIsDeletedFilter(request.IsDeleted)
             .Include(x => x.UnitMeasure)
             .Include(x => x.ProductGroup)
+            .Include(x => x.Vat)
+            .Include(x => x.Tax)
             .AsQueryable();
 
         var entities = await query.ToListAsync(cancellationToken);
