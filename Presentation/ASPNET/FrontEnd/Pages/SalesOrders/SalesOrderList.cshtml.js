@@ -4,7 +4,6 @@
             mainData: [],
             deleteMode: false,
             customerListLookupData: [],
-            taxListLookupData: [],
             salesOrderStatusListLookupData: [],
             secondaryData: [],
             productListLookupData: [],
@@ -14,12 +13,10 @@
             orderDate: '',
             description: '',
             customerId: null,
-            taxId: null,
             orderStatus: null,
             errors: {
                 orderDate: '',
                 customerId: '',
-                taxId: '',
                 orderStatus: '',
                 description: ''
             },
@@ -35,28 +32,18 @@
         const orderDateRef = Vue.ref(null);
         const numberRef = Vue.ref(null);
         const customerIdRef = Vue.ref(null);
-        const taxIdRef = Vue.ref(null);
         const orderStatusRef = Vue.ref(null);
         const secondaryGridRef = Vue.ref(null);
 
         const validateForm = function () {
             state.errors.orderDate = '';
             state.errors.customerId = '';
-            state.errors.taxId = '';
             state.errors.orderStatus = '';
 
             let isValid = true;
 
-            //if (!state.orderDate) {
-            //    state.errors.orderDate = 'Order date is required.';
-            //    isValid = false;
-            //}
             if (!state.customerId) {
                 state.errors.customerId = 'Customer is required.';
-                isValid = false;
-            }
-            if (!state.taxId || state.taxId.length === 0) {
-                state.errors.taxId = 'At least one tax is required.';
                 isValid = false;
             }
             if (!state.orderStatus) {
@@ -73,12 +60,10 @@
             state.orderDate = '';
             state.description = '';
             state.customerId = null;
-            state.taxId = [];
             state.orderStatus = null;
             state.errors = {
                 orderDate: '',
                 customerId: '',
-                taxId: [],
                 orderStatus: '',
                 description: ''
             };
@@ -98,20 +83,20 @@
                     throw error;
                 }
             },
-            createMainData: async (orderDate, description, orderStatus, taxId, customerId, createdById) => {
+            createMainData: async (orderDate, description, orderStatus, customerId, createdById) => {
                 try {
                     const response = await AxiosManager.post('/SalesOrder/CreateSalesOrder', {
-                        orderDate, description, orderStatus, taxId, customerId, createdById
+                        orderDate, description, orderStatus, customerId, createdById
                     });
                     return response;
                 } catch (error) {
                     throw error;
                 }
             },
-            updateMainData: async (id, orderDate, description, orderStatus, taxId, customerId, updatedById) => {
+            updateMainData: async (id, orderDate, description, orderStatus, customerId, updatedById) => {
                 try {
                     const response = await AxiosManager.post('/SalesOrder/UpdateSalesOrder', {
-                        id, orderDate, description, orderStatus, taxId, customerId, updatedById
+                        id, orderDate, description, orderStatus, customerId, updatedById
                     });
                     return response;
                 } catch (error) {
@@ -131,14 +116,6 @@
             getCustomerListLookupData: async () => {
                 try {
                     const response = await AxiosManager.get('/Customer/GetCustomerList', {});
-                    return response;
-                } catch (error) {
-                    throw error;
-                }
-            },
-            getTaxListLookupData: async () => {
-                try {
-                    const response = await AxiosManager.get('/Tax/GetTaxList', {});
                     return response;
                 } catch (error) {
                     throw error;
@@ -205,10 +182,6 @@
                 const response = await services.getCustomerListLookupData();
                 state.customerListLookupData = response?.data?.content?.data;
             },
-            populateTaxListLookupData: async () => {
-                const response = await services.getTaxListLookupData();
-                state.taxListLookupData = response?.data?.content?.data;
-            },
             populateSalesOrderStatusListLookupData: async () => {
                 const response = await services.getSalesOrderStatusListLookupData();
                 state.salesOrderStatusListLookupData = response?.data?.content?.data;
@@ -256,10 +229,10 @@
 
                 try {
                     const response = state.id === ''
-                        ? await services.createMainData(state.orderDate, state.description, state.orderStatus, state.taxId, state.customerId, StorageManager.getUserId())
+                        ? await services.createMainData(state.orderDate, state.description, state.orderStatus, state.customerId, StorageManager.getUserId())
                         : state.deleteMode
                             ? await services.deleteMainData(state.id, StorageManager.getUserId())
-                            : await services.updateMainData(state.id, state.orderDate, state.description, state.orderStatus, state.taxId, state.customerId, StorageManager.getUserId());
+                            : await services.updateMainData(state.id, state.orderDate, state.description, orderStatus, customerId, StorageManager.getUserId());
 
                     if (response.data.code === 200) {
                         await methods.populateMainData();
@@ -272,8 +245,6 @@
                             state.orderDate = response?.data?.content?.data.orderDate ? new Date(response.data.content.data.orderDate) : null;
                             state.description = response?.data?.content?.data.description ?? '';
                             state.customerId = response?.data?.content?.data.customerId ?? '';
-                            state.taxId = response?.data?.content?.data.taxId ?? '';
-                            taxListLookup.trackingChange = true;
                             state.orderStatus = String(response?.data?.content?.data.orderStatus ?? '');
                             state.showComplexDiv = true;
 
@@ -321,9 +292,7 @@
             onMainModalHidden: () => {
                 state.errors.orderDate = '';
                 state.errors.customerId = '';
-                state.errors.taxId = '';
                 state.errors.orderStatus = '';
-                taxListLookup.trackingChange = false;
             }
         };
 
@@ -347,97 +316,15 @@
                             e.updateData(state.customerListLookupData, query);
                         },
                         change: (e) => {
-                            state.customerId = e.value;                            
+                            state.customerId = e.value;
                         }
                     });
                     customerListLookup.obj.appendTo(customerIdRef.value);
-                   // taxListLookup.obj.appendTo(taxIdRef.value);
                 }
             },
             refresh: () => {
                 if (customerListLookup.obj) {
                     customerListLookup.obj.value = state.customerId;
-                }
-              
-            }
-        };
-
-        //const taxListLookup = {
-        //    obj: null,
-        //    trackingChange: false,
-        //    create: () => {
-        //        if (state.taxListLookupData && Array.isArray(state.taxListLookupData)) {
-        //            taxListLookup.obj = new ej.dropdowns.DropDownList({
-        //                dataSource: state.taxListLookupData,
-        //                fields: { value: 'id', text: 'name' },
-        //                placeholder: 'Select a Tax',
-        //                change: async (e) => {
-        //                    //state.taxId = e.value;
-        //                    //if (e.isInteracted && taxListLookup.trackingChange) {
-        //                    //    await methods.handleFormSubmit();
-        //                    //}
-
-        //                    state.taxId = e.value;
-        //                    if (e.isInteracted && taxListLookup.trackingChange) {
-        //                        try {
-        //                            await methods.handleFormSubmit();
-        //                        } catch (error) {
-        //                            console.error('Error in form submission:', error);
-        //                        }
-        //                    }
-        //                }
-        //            });
-        //            taxListLookup.obj.appendTo(taxIdRef.value);
-        //        }
-        //    },
-        //    refresh: () => {
-        //        //if (taxListLookup.obj) {
-        //        //    taxListLookup.obj.value = state.taxId;
-        //        //}
-        //        if (taxListLookup.obj) {
-        //            // Set the value as array for MultiSelect
-        //            taxListLookup.obj.value = state.taxId || [];
-        //        }
-        //    }
-        //};
-
-        const taxListLookup = {
-            obj: null,
-            trackingChange: false,
-            create: () => {
-                if (state.taxListLookupData && Array.isArray(state.taxListLookupData)) {
-                    taxListLookup.obj = new ej.dropdowns.MultiSelect({
-                        dataSource: state.taxListLookupData,
-                        fields: { value: 'id', text: 'name' },
-                        placeholder: 'Select Taxes',
-                        mode: 'CheckBox',
-                        showSelectAll: true,
-                        showDropDownIcon: true,
-                        filterBarPlaceholder: 'Search Taxes',
-                        value: state.taxId || [],
-                        change: function (e) {
-                            // Store as array of values for multiple selection
-                            state.taxId = e.value;
-                            if (e.isInteracted && taxListLookup.trackingChange) {
-                                methods.handleFormSubmit().catch(error => {
-                                    console.error('Error in form submission:', error);
-                                });
-                            }
-                        },
-                        select: (e) => {
-                            console.log('Selected values:', e.value);
-                        },
-                        removed: (e) => {
-                            console.log('Removed values:', e.value);
-                        }
-                    });
-                    taxListLookup.obj.appendTo(taxIdRef.value);
-                }
-            },
-            refresh: () => {
-                if (taxListLookup.obj) {
-                    // Set the value as array for MultiSelect
-                    taxListLookup.obj.value = state.taxId || [];
                 }
             }
         };
@@ -511,14 +398,6 @@
         );
 
         Vue.watch(
-            () => state.taxId,
-            (newVal, oldVal) => {
-                taxListLookup.refresh();
-                state.errors.taxId = '';
-            }
-        );
-
-        Vue.watch(
             () => state.orderStatus,
             (newVal, oldVal) => {
                 salesOrderStatusListLookup.refresh();
@@ -557,9 +436,6 @@
                         { field: 'orderDate', headerText: 'SO Date', width: 150, format: 'yyyy-MM-dd' },
                         { field: 'customerName', headerText: 'Customer', width: 200, minWidth: 200 },
                         { field: 'orderStatusName', headerText: 'Status', width: 150, minWidth: 150 },
-                        /*{ field: 'taxName', headerText: 'Tax', width: 150, minWidth: 150 },*/
-                        { field: 'taxNamesCombined', headerText: 'Tax', width: 150, minWidth: 150 },
-
                         { field: 'afterTaxAmount', headerText: 'Total Amount', width: 150, minWidth: 150, format: 'N2' },
                         { field: 'createdAtUtc', headerText: 'Created At UTC', width: 150, format: 'yyyy-MM-dd HH:mm' }
                     ],
@@ -575,7 +451,7 @@
                     beforeDataBound: () => { },
                     dataBound: function () {
                         mainGrid.obj.toolbarModule.enableItems(['EditCustom', 'DeleteCustom', 'PrintPDFCustom'], false);
-                        mainGrid.obj.autoFitColumns(['number', 'orderDate', 'customerName', 'orderStatusName', 'taxNamesCombined', 'afterTaxAmount', 'createdAtUtc']);
+                        mainGrid.obj.autoFitColumns(['number', 'orderDate', 'customerName', 'orderStatusName', 'afterTaxAmount', 'createdAtUtc']);
                     },
                     excelExportComplete: () => { },
                     rowSelected: () => {
@@ -622,47 +498,6 @@
                                 state.orderDate = selectedRecord.orderDate ? new Date(selectedRecord.orderDate) : null;
                                 state.description = selectedRecord.description ?? '';
                                 state.customerId = selectedRecord.customerId ?? '';
-                                /*state.taxId = selectedRecord.taxId ?? '';*/
-
-                                let taxIds = (selectedRecord.taxIds && Array.isArray(selectedRecord.taxIds))
-                                    ? selectedRecord.taxIds.slice()
-                                    : [];
-
-                                // 2) If server returned taxes[] objects
-                                if ((!taxIds || !taxIds.length) && (selectedRecord.taxes || selectedRecord.Taxes)) {
-                                    taxIds = (selectedRecord.taxes || selectedRecord.Taxes)
-                                        .map(t => t ? (t.taxId || (t.tax && t.tax.id)) : null)
-                                        .filter(Boolean);
-                                }
-
-                                // 3) Fallback: if the server returned a single taxId property
-                                if ((!taxIds || !taxIds.length) && selectedRecord.taxId) {
-                                    taxIds = [selectedRecord.taxId];
-                                }
-
-                                // Save to state. Note: state.taxId becomes an array of ids (rename to taxIds if you prefer)
-                                state.taxId = taxIds; // IMPORTANT: adapt your edit modal to accept an array/multi-select
-
-                                // Build a readable names string for UI display
-                                let taxNames = '';
-                                if (selectedRecord.taxNames && Array.isArray(selectedRecord.taxNames) && selectedRecord.taxNames.length) {
-                                    taxNames = selectedRecord.taxNames.join(', ');
-                                } else if (selectedRecord.taxNamesCombined) {
-                                    taxNames = selectedRecord.taxNamesCombined;
-                                } else if (selectedRecord.taxes || selectedRecord.Taxes) {
-                                    taxNames = (selectedRecord.taxes || selectedRecord.Taxes)
-                                        .map(t => t ? (t.taxName || (t.tax && t.tax.name)) : null)
-                                        .filter(Boolean)
-                                        .join(', ');
-                                } else if (selectedRecord.taxName) {
-                                    taxNames = selectedRecord.taxName;
-                                }
-
-                                state.taxNames = taxNames; // optional: show in modal as read-only label
-
-
-
-                                taxListLookup.trackingChange = true;
                                 state.orderStatus = String(selectedRecord.orderStatus ?? '');
                                 state.showComplexDiv = true;
 
@@ -683,7 +518,6 @@
                                 state.orderDate = selectedRecord.orderDate ? new Date(selectedRecord.orderDate) : null;
                                 state.description = selectedRecord.description ?? '';
                                 state.customerId = selectedRecord.customerId ?? '';
-                                state.taxId = selectedRecord.taxId ?? '';
                                 state.orderStatus = String(selectedRecord.orderStatus ?? '');
                                 state.showComplexDiv = false;
 
@@ -779,9 +613,17 @@
                                                 }
                                                 if (quantityObj) {
                                                     quantityObj.value = 1;
-                                                    const total = selectedProduct.unitPrice * quantityObj.value;
+                                                    const basePrice = selectedProduct.unitPrice || 0;
+                                                    const vatPercentage = selectedProduct.vatPercentage || 0;
+                                                    const taxPercentage = selectedProduct.taxPercentage || 0;
+                                                    const vatAmount = basePrice * (vatPercentage / 100);
+                                                    const taxAmount = basePrice * (taxPercentage / 100);
+                                                    const total = (basePrice + vatAmount + taxAmount) * quantityObj.value;
                                                     if (totalObj) {
                                                         totalObj.value = total;
+                                                    }
+                                                    if (totalPriceObj) {
+                                                        totalPriceObj.value = total;
                                                     }
                                                 }
                                             }
@@ -812,9 +654,15 @@
                                     priceObj = new ej.inputs.NumericTextBox({
                                         value: args.rowData.unitPrice ?? 0,
                                         change: (e) => {
-                                            if (quantityObj && totalObj) {
-                                                const total = e.value * quantityObj.value;
+                                            if (quantityObj && totalObj && totalPriceObj) {
+                                                const selectedProduct = state.productListLookupData.find(item => item.id === args.rowData.productId);
+                                                const vatPercentage = selectedProduct?.vatPercentage || 0;
+                                                const taxPercentage = selectedProduct?.taxPercentage || 0;
+                                                const vatAmount = e.value * (vatPercentage / 100);
+                                                const taxAmount = e.value * (taxPercentage / 100);
+                                                const total = (e.value + vatAmount + taxAmount) * quantityObj.value;
                                                 totalObj.value = total;
+                                                totalPriceObj.value = total;
                                             }
                                         }
                                     });
@@ -848,9 +696,15 @@
                                     quantityObj = new ej.inputs.NumericTextBox({
                                         value: args.rowData.quantity ?? 0,
                                         change: (e) => {
-                                            if (priceObj && totalObj) {
-                                                const total = e.value * priceObj.value;
+                                            if (priceObj && totalObj && totalPriceObj) {
+                                                const selectedProduct = state.productListLookupData.find(item => item.id === args.rowData.productId);
+                                                const vatPercentage = selectedProduct?.vatPercentage || 0;
+                                                const taxPercentage = selectedProduct?.taxPercentage || 0;
+                                                const vatAmount = priceObj.value * (vatPercentage / 100);
+                                                const taxAmount = priceObj.value * (taxPercentage / 100);
+                                                const total = (priceObj.value + vatAmount + taxAmount) * e.value;
                                                 totalObj.value = total;
+                                                totalPriceObj.value = total;
                                             }
                                         }
                                     });
@@ -859,29 +713,63 @@
                             }
                         },
                         {
-                            field: 'total',
-                            headerText: 'Total',
-                            width: 200, validationRules: { required: false }, type: 'number', format: 'N2', textAlign: 'Right',
-                            edit: {
-                                create: () => {
-                                    let totalElem = document.createElement('input');
-                                    return totalElem;
-                                },
-                                read: () => {
-                                    return totalObj.value;
-                                },
-                                destroy: () => {
-                                    totalObj.destroy();
-                                },
-                                write: (args) => {
-                                    totalObj = new ej.inputs.NumericTextBox({
-                                        value: args.rowData.total ?? 0,
-                                        readonly: true
-                                    });
-                                    totalObj.appendTo(args.element);
-                                }
+                            field: 'vatName',
+                            headerText: 'VAT',
+                            width: 150,
+                            allowEditing: false,
+                            valueAccessor: (field, data, column) => {
+                                const product = state.productListLookupData.find(item => item.id === data['productId']);
+                                return product ? product.vatName || 'Not Set' : 'Not Set';
                             }
                         },
+                        {
+                            field: 'taxName',
+                            headerText: 'Tax',
+                            width: 150,
+                            allowEditing: false,
+                            valueAccessor: (field, data, column) => {
+                                const product = state.productListLookupData.find(item => item.id === data['productId']);
+                                return product ? product.taxName || 'Not Set' : 'Not Set';
+                            }
+                        },
+                        {
+                            field: 'totalPrice',
+                            headerText: 'Total',
+                            width: 200,
+                            type: 'number',
+                            format: 'N2',
+                            textAlign: 'Right',
+                            allowEditing: false,
+                            valueAccessor: (field, data, column) => {
+                                const product = state.productListLookupData.find(item => item.id === data['productId']);
+                                const unitPrice = data['unitPrice'] || (product ? product.unitPrice : 0);
+                                const quantity = data['quantity'] || 0;
+                                const vatPercentage = product?.vatPercentage || 0;
+                                const taxPercentage = product?.taxPercentage || 0;
+                                const vatAmount = unitPrice * (vatPercentage / 100);
+                                const taxAmount = unitPrice * (taxPercentage / 100);
+                                return (unitPrice + vatAmount + taxAmount) * quantity;
+                            },
+                            edit: {
+                                create: () => {
+                                    let totalPriceElem = document.createElement('input');
+                                    return totalPriceElem;
+                                },
+                                read: () => {
+                                    return totalPriceObj.value;
+                                },
+                                destroy: () => {
+                                    totalPriceObj.destroy();
+                                },
+                                write: (args) => {
+                                    totalPriceObj = new ej.inputs.NumericTextBox({
+                                        value: args.rowData.totalPrice ?? 0,
+                                        readonly: true
+                                    });
+                                    totalPriceObj.appendTo(args.element);
+                                }
+                            }
+                        },                     
                         {
                             field: 'productNumber',
                             headerText: 'Product Number',
@@ -927,7 +815,7 @@
                                     summaryObj.appendTo(args.element);
                                 }
                             }
-                        },
+                        }
                     ],
                     toolbar: [
                         'ExcelExport',
@@ -963,7 +851,7 @@
                     },
                     actionComplete: async (args) => {
                         if (args.requestType === 'save' && args.action === 'add') {
-                            const salesOrderId = state.id; 
+                            const salesOrderId = state.id;
                             const userId = StorageManager.getUserId();
                             const data = args.data;
 
@@ -979,7 +867,7 @@
                             });
                         }
                         if (args.requestType === 'save' && args.action === 'edit') {
-                            const salesOrderId = state.id; 
+                            const salesOrderId = state.id;
                             const userId = StorageManager.getUserId();
                             const data = args.data;
 
@@ -995,7 +883,7 @@
                             });
                         }
                         if (args.requestType === 'delete') {
-                            const salesOrderId = state.id; 
+                            const salesOrderId = state.id;
                             const userId = StorageManager.getUserId();
                             const data = args.data[0];
 
@@ -1045,8 +933,6 @@
                 mainModalRef.value?.addEventListener('hidden.bs.modal', methods.onMainModalHidden);
                 await methods.populateCustomerListLookupData();
                 customerListLookup.create();
-                await methods.populateTaxListLookupData();
-                taxListLookup.create();
                 await methods.populateSalesOrderStatusListLookupData();
                 salesOrderStatusListLookup.create();
                 orderDatePicker.create();
@@ -1055,8 +941,6 @@
                 await secondaryGrid.create(state.secondaryData);
             } catch (e) {
                 console.error('page init error:', e);
-            } finally {
-                
             }
         });
 
@@ -1070,7 +954,6 @@
             orderDateRef,
             numberRef,
             customerIdRef,
-            taxIdRef,
             orderStatusRef,
             secondaryGridRef,
             state,

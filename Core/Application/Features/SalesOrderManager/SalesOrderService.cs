@@ -24,39 +24,43 @@ public class SalesOrderService
 
     public void Recalculate(string salesOrderId)
     {
-        var salesOrder = _salesOrderRepository
-            .GetQuery()
-            .ApplyIsDeletedFilter()
-            .Where(x => x.Id == salesOrderId)
-            .Include(x => x.SalesOrderTaxes)
-               .ThenInclude(st => st.Tax)
-            .Include(x => x.SalesOrderItemList) // Include the SalesOrderItemList
-            .SingleOrDefault();
+        var salesOrder = _salesOrderRepository.GetQuery()
+            .Include(so => so.SalesOrderItemList)
+                .ThenInclude(item => item.Product)
+                    .ThenInclude(p => p.Tax)
+            .Include(so => so.SalesOrderItemList)
+                .ThenInclude(item => item.Product)
+                    .ThenInclude(p => p.Vat)
+            .FirstOrDefault(x => x.Id == salesOrderId);
 
-        if (salesOrder == null)
-            return;
+        if (salesOrder == null) return;
 
-        // Calculate subtotal from all sales order items
-        salesOrder.BeforeTaxAmount = salesOrder.SalesOrderItemList.Sum(x => x.Total ?? 0);
+        double subtotal = 0;
+        double totalTax = 0;
+        double totalVat = 0;
 
-        // Calculate total tax from all associated taxes
-        double totalTaxAmount = 0;
-        foreach (var salesOrderTax in salesOrder.SalesOrderTaxes)
+        foreach (var item in salesOrder.SalesOrderItemList ?? new List<SalesOrderItem>())
         {
-            if (salesOrderTax.Tax != null)
+            var itemTotal = (item.Quantity ?? 0) * (item.UnitPrice ?? 0);
+            subtotal += itemTotal;
+
+            // Calculate tax from product
+            if (item.Product?.Tax?.Percentage != null)
             {
-                // Use the appropriate property name from your Tax entity
-                // If your Tax entity has a Percentage property, use that
-                // If it has a Rate property, use that instead
-                double taxPercentage = (double)salesOrderTax.Tax.Percentage; // or salesOrderTax.Tax.Rate
-                totalTaxAmount += (salesOrder.BeforeTaxAmount ?? 0) * taxPercentage / 100;
+                totalTax += itemTotal * (item.Product.Tax.Percentage.Value / 100);
+            }
+
+            // Calculate VAT from product
+            if (item.Product?.Vat?.Percentage != null)
+            {
+                totalVat += itemTotal * (item.Product.Vat.Percentage.Value / 100);
             }
         }
 
-        salesOrder.TaxAmount = totalTaxAmount;
-        salesOrder.AfterTaxAmount = (salesOrder.BeforeTaxAmount ?? 0) + totalTaxAmount;
+        salesOrder.BeforeTaxAmount = subtotal;
+        salesOrder.TaxAmount = totalTax + totalVat;
+        salesOrder.AfterTaxAmount = subtotal + totalTax + totalVat;
 
-        _salesOrderRepository.Update(salesOrder);
         _unitOfWork.Save();
     }
 
