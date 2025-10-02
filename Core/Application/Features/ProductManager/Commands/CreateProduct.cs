@@ -3,6 +3,7 @@ using Application.Features.NumberSequenceManager;
 using Domain.Entities;
 using FluentValidation;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.Features.ProductManager.Commands;
 
@@ -15,6 +16,7 @@ public class CreateProductRequest : IRequest<CreateProductResult>
 {
     public string? Number { get; init; }
     public string? Name { get; init; }
+    public string Barcode { get; set; } // New
     public string? Description { get; init; }
     public double? UnitPrice { get; init; }
     public bool? Physical { get; init; } = true;
@@ -59,6 +61,13 @@ public class CreateProductHandler : IRequestHandler<CreateProductRequest, Create
     public async Task<CreateProductResult> Handle(CreateProductRequest request, CancellationToken cancellationToken = default)
     {
         var entity = new Product();
+        var existingProduct = await _repository.GetQuery().Where(a => a.Barcode == request.Barcode)
+           .AsNoTracking()
+           .AnyAsync(p => p.Number == request.Number && !p.IsDeleted, cancellationToken);
+        if (existingProduct)
+        {
+            throw new InvalidOperationException("Barcode already exists");
+        }
         entity.CreatedById = request.CreatedById;
 
         entity.Number = _numberSequenceService.GenerateNumber(nameof(Product), "", "ART");
@@ -69,7 +78,8 @@ public class CreateProductHandler : IRequestHandler<CreateProductRequest, Create
         entity.UnitMeasureId = request.UnitMeasureId;
         entity.ProductGroupId = request.ProductGroupId;
         entity.VatId = request.VatId;          // Added VAT
-        entity.TaxId = request.TaxId;          // Added 
+        entity.TaxId = request.TaxId;          // Added  Taxes
+        entity.Barcode = request.Barcode;
 
         await _repository.CreateAsync(entity, cancellationToken);
         await _unitOfWork.SaveAsync(cancellationToken);

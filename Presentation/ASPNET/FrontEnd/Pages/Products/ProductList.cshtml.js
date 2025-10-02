@@ -11,6 +11,7 @@
             id: '',
             name: '',
             number: '',
+            barcode: '',
             unitPrice: '',
             description: '',
             productGroupId: null,
@@ -37,6 +38,7 @@
         const taxIdRef = Vue.ref(null);
         const nameRef = Vue.ref(null);
         const numberRef = Vue.ref(null);
+        const barcodeRef = Vue.ref(null);
         const unitPriceRef = Vue.ref(null);
 
         // Define mainModal FIRST to ensure it's available everywhere
@@ -220,6 +222,21 @@
                 if (numberText.obj) {
                     numberText.obj.value = state.number;
                 }
+            },
+        };
+
+        const barcodeText = {
+            obj: null,
+            create: () => {
+                barcodeText.obj = new ej.inputs.TextBox({
+                    placeholder: 'Enter or Scan Barcode',
+                });
+                barcodeText.obj.appendTo(barcodeRef.value);
+            },
+            refresh: () => {
+                if (barcodeText.obj) {
+                    barcodeText.obj.value = state.barcode;
+                }
             }
         };
 
@@ -227,11 +244,10 @@
             obj: null,
             create: () => {
                 unitPriceNumber.obj = new ej.inputs.NumericTextBox({
-                    format: 'n2',
                     placeholder: 'Enter Unit Price',
-                    min: 0,
-                    step: 0.01,
-                    validateDecimalOnType: true
+                    decimals: 2,
+                    format: 'N2',
+                    min: 0
                 });
                 unitPriceNumber.obj.appendTo(unitPriceRef.value);
             },
@@ -259,28 +275,14 @@
             if (!state.unitPrice) {
                 state.errors.unitPrice = 'Unit price is required.';
                 isValid = false;
-            } else if (!/^\d+(\.\d{1,2})?$/.test(state.unitPrice)) {
-                state.errors.unitPrice = 'Unit price must be a numeric value with up to two decimal places.';
-                isValid = false;
             }
             if (!state.productGroupId) {
-                state.errors.productGroupId = 'ProductGroup is required.';
+                state.errors.productGroupId = 'Product group is required.';
                 isValid = false;
             }
             if (!state.unitMeasureId) {
-                state.errors.unitMeasureId = 'UnitMeasure is required.';
+                state.errors.unitMeasureId = 'Unit measure is required.';
                 isValid = false;
-            }
-            // Make VAT and Tax optional temporarily until APIs are ready
-            if (!state.vatId) {
-                console.warn('VAT is not selected, but proceeding anyway');
-                // state.errors.vatId = 'VAT is required.';
-                // isValid = false;
-            }
-            if (!state.taxId) {
-                console.warn('Tax is not selected, but proceeding anyway');
-                // state.errors.taxId = 'Tax is required.';
-                // isValid = false;
             }
 
             return isValid;
@@ -290,6 +292,7 @@
             state.id = '';
             state.name = '';
             state.number = '';
+            state.barcode = '';
             state.unitPrice = '';
             state.description = '';
             state.productGroupId = null;
@@ -316,20 +319,20 @@
                     throw error;
                 }
             },
-            createMainData: async (name, unitPrice, physical, description, productGroupId, unitMeasureId, vatId, taxId, createdById) => {
+            createMainData: async (name, barcode, unitPrice, description, productGroupId, unitMeasureId, vatId, taxId, physical, createdById) => {
                 try {
                     const response = await AxiosManager.post('/Product/CreateProduct', {
-                        name, unitPrice, physical, description, productGroupId, unitMeasureId, vatId, taxId, createdById
+                        name, barcode, unitPrice, description, productGroupId, unitMeasureId, vatId, taxId, physical, createdById
                     });
                     return response;
                 } catch (error) {
                     throw error;
                 }
             },
-            updateMainData: async (id, name, unitPrice, physical, description, productGroupId, unitMeasureId, vatId, taxId, updatedById) => {
+            updateMainData: async (id, name, barcode, unitPrice, description, productGroupId, unitMeasureId, vatId, taxId, physical, updatedById) => {
                 try {
                     const response = await AxiosManager.post('/Product/UpdateProduct', {
-                        id, name, unitPrice, physical, description, productGroupId, unitMeasureId, vatId, taxId, updatedById
+                        id, name, barcode, unitPrice, description, productGroupId, unitMeasureId, vatId, taxId, physical, updatedById
                     });
                     return response;
                 } catch (error) {
@@ -367,9 +370,7 @@
                     const response = await AxiosManager.get('/Vat/GetVatList', {});
                     return response;
                 } catch (error) {
-                    // Return empty array instead of throwing to prevent breaking the flow
-                    console.warn('VAT API not available, returning empty data');
-                    return { data: { content: { data: [] } } };
+                    throw error;
                 }
             },
             getTaxListLookupData: async () => {
@@ -377,87 +378,50 @@
                     const response = await AxiosManager.get('/Tax/GetTaxList', {});
                     return response;
                 } catch (error) {
-                    // Return empty array instead of throwing to prevent breaking the flow
-                    console.warn('Tax API not available, returning empty data');
-                    return { data: { content: { data: [] } } };
+                    throw error;
                 }
-            },
+            }
         };
 
         const methods = {
             populateProductGroupListLookupData: async () => {
-                try {
-                    const response = await services.getProductGroupListLookupData();
-                    state.productGroupListLookupData = response?.data?.content?.data || [];
-                } catch (error) {
-                    console.error('Error loading product groups:', error);
-                    state.productGroupListLookupData = [];
-                }
+                const response = await services.getProductGroupListLookupData();
+                state.productGroupListLookupData = response?.data?.content?.data;
             },
             populateUnitMeasureListLookupData: async () => {
-                try {
-                    const response = await services.getUnitMeasureListLookupData();
-                    state.unitMeasureListLookupData = response?.data?.content?.data || [];
-                } catch (error) {
-                    console.error('Error loading unit measures:', error);
-                    state.unitMeasureListLookupData = [];
-                }
+                const response = await services.getUnitMeasureListLookupData();
+                state.unitMeasureListLookupData = response?.data?.content?.data;
             },
             populateVatListLookupData: async () => {
-                try {
-                    const response = await services.getVatListLookupData();
-                    console.log('response', response);
-                    state.vatListLookupData = response?.data?.content?.data || [];
-                    console.log('state.vatListLookupData', state.vatListLookupData)
-                    if (state.vatListLookupData.length === 0) {
-                        console.warn('No VAT data available from API');
-                    }
-                } catch (error) {
-                    console.error('Error loading VAT data:', error);
-                    state.vatListLookupData = [];
-                }
+                const response = await services.getVatListLookupData();
+                state.vatListLookupData = response?.data?.content?.data;
             },
             populateTaxListLookupData: async () => {
-                try {
-                    const response = await services.getTaxListLookupData();
-                    state.taxListLookupData = response?.data?.content?.data || [];
-                    if (state.taxListLookupData.length === 0) {
-                        console.warn('No Tax data available from API');
-                    }
-                } catch (error) {
-                    console.error('Error loading Tax data:', error);
-                    state.taxListLookupData = [];
-                }
+                const response = await services.getTaxListLookupData();
+                state.taxListLookupData = response?.data?.content?.data;
             },
             populateMainData: async () => {
-                try {
-                    const response = await services.getMainData();
-                    state.mainData = response?.data?.content?.data.map(item => ({
-                        ...item,
-                        createdAtUtc: new Date(item.createdAtUtc)
-                    })) || [];
-                } catch (error) {
-                    console.error('Error loading main data:', error);
-                    state.mainData = [];
-                }
+                const response = await services.getMainData();
+                state.mainData = response?.data?.content?.data.map(item => ({
+                    ...item,
+                    createdAtUtc: new Date(item.createdAtUtc)
+                }));
             },
-        };
+            handleFormSubmit: async () => {
+                state.isSubmitting = true;
+                await new Promise(resolve => setTimeout(resolve, 200));
 
-        const handler = {
-            handleSubmit: async function () {
+                if (!validateForm()) {
+                    state.isSubmitting = false;
+                    return;
+                }
+
                 try {
-                    state.isSubmitting = true;
-                    await new Promise(resolve => setTimeout(resolve, 300));
-
-                    if (!validateForm()) {
-                        return;
-                    }
-
                     const response = state.id === ''
-                        ? await services.createMainData(state.name, state.unitPrice, state.physical, state.description, state.productGroupId, state.unitMeasureId, state.vatId, state.taxId, StorageManager.getUserId())
+                        ? await services.createMainData(state.name, state.barcode, state.unitPrice, state.description, state.productGroupId, state.unitMeasureId, state.vatId, state.taxId, state.physical, StorageManager.getUserId())
                         : state.deleteMode
                             ? await services.deleteMainData(state.id, StorageManager.getUserId())
-                            : await services.updateMainData(state.id, state.name, state.unitPrice, state.physical, state.description, state.productGroupId, state.unitMeasureId, state.vatId, state.taxId, StorageManager.getUserId());
+                            : await services.updateMainData(state.id, state.name, state.barcode, state.unitPrice, state.description, state.productGroupId, state.unitMeasureId, state.vatId, state.taxId, state.physical, StorageManager.getUserId());
 
                     if (response.data.code === 200) {
                         await methods.populateMainData();
@@ -468,6 +432,7 @@
                             state.id = response?.data?.content?.data.id ?? '';
                             state.number = response?.data?.content?.data.number ?? '';
                             state.name = response?.data?.content?.data.name ?? '';
+                            state.barcode = response?.data?.content?.data.barcode ?? '';
                             state.unitPrice = response?.data?.content?.data.unitPrice ?? '';
                             state.description = response?.data?.content?.data.description ?? '';
                             state.productGroupId = response?.data?.content?.data.productGroupId ?? '';
@@ -478,15 +443,10 @@
 
                             Swal.fire({
                                 icon: 'success',
-                                title: state.deleteMode ? 'Delete Successful' : 'Save Successful',
-                                text: 'Form will be closed...',
-                                timer: 2000,
+                                title: 'Save Successful',
+                                timer: 1000,
                                 showConfirmButton: false
                             });
-                            setTimeout(() => {
-                                mainModal.hide();
-                            }, 2000);
-
                         } else {
                             Swal.fire({
                                 icon: 'success',
@@ -509,7 +469,6 @@
                             confirmButtonText: 'Try Again'
                         });
                     }
-
                 } catch (error) {
                     Swal.fire({
                         icon: 'error',
@@ -520,10 +479,13 @@
                 } finally {
                     state.isSubmitting = false;
                 }
-            },
+            }
         };
 
-        // Define mainGrid after all dependencies are defined
+        const handler = {
+            handleSubmit: methods.handleFormSubmit
+        };
+
         const mainGrid = {
             obj: null,
             create: async (dataSource) => {
@@ -534,9 +496,7 @@
                     allowSorting: true,
                     allowSelection: true,
                     allowGrouping: true,
-                    groupSettings: {
-                        columns: ['productGroupName']
-                    },
+                    groupSettings: { columns: ['productGroupName'] },
                     allowTextWrap: true,
                     allowResizing: true,
                     allowPaging: true,
@@ -553,14 +513,15 @@
                         {
                             field: 'id', isPrimaryKey: true, headerText: 'Id', visible: false
                         },
-                        { field: 'number', headerText: 'Number', width: 200, minWidth: 200 },
                         { field: 'name', headerText: 'Name', width: 200, minWidth: 200 },
-                        { field: 'productGroupName', headerText: 'Product Group', width: 150, minWidth: 150 },
-                        { field: 'unitPrice', headerText: 'Unit Price', width: 150, minWidth: 150, format: 'N2' },
-                        { field: 'unitMeasureName', headerText: 'Unit Measure', width: 150, minWidth: 150 },
-                        { field: 'vatName', headerText: 'VAT', width: 150, minWidth: 150 },
-                        { field: 'taxName', headerText: 'Tax', width: 150, minWidth: 150 },
-                        { field: 'physical', headerText: 'Physical Product', width: 200, minWidth: 200, textAlign: 'Center', type: 'boolean', displayAsCheckBox: true },
+                        { field: 'number', headerText: 'Number', width: 150, minWidth: 150 },
+                        { field: 'barcode', headerText: 'Barcode', width: 150, minWidth: 150 },
+                        { field: 'unitPrice', headerText: 'Unit Price', width: 150, format: 'N2' },
+                        { field: 'productGroupName', headerText: 'Product Group', width: 150 },
+                        { field: 'unitMeasureName', headerText: 'Unit Measure', width: 150 },
+                        { field: 'vatName', headerText: 'VAT', width: 150 },
+                        { field: 'taxName', headerText: 'Tax', width: 150 },
+                        { field: 'physical', headerText: 'Physical', width: 150, displayAsCheckBox: true, type: 'boolean' },
                         { field: 'createdAtUtc', headerText: 'Created At UTC', width: 150, format: 'yyyy-MM-dd HH:mm' }
                     ],
                     toolbar: [
@@ -569,12 +530,11 @@
                         { text: 'Add', tooltipText: 'Add', prefixIcon: 'e-add', id: 'AddCustom' },
                         { text: 'Edit', tooltipText: 'Edit', prefixIcon: 'e-edit', id: 'EditCustom' },
                         { text: 'Delete', tooltipText: 'Delete', prefixIcon: 'e-delete', id: 'DeleteCustom' },
-                        { type: 'Separator' },
                     ],
                     beforeDataBound: () => { },
                     dataBound: function () {
                         mainGrid.obj.toolbarModule.enableItems(['EditCustom', 'DeleteCustom'], false);
-                        mainGrid.obj.autoFitColumns(['number', 'name', 'productGroupName', 'unitPrice', 'unitMeasureName', 'vatName', 'taxName', 'physical', 'createdAtUtc']);
+                        mainGrid.obj.autoFitColumns(['name', 'number', 'barcode', 'unitPrice', 'productGroupName', 'unitMeasureName', 'vatName', 'taxName', 'physical', 'createdAtUtc']);
                     },
                     excelExportComplete: () => { },
                     rowSelected: () => {
@@ -616,6 +576,7 @@
                                 state.id = selectedRecord.id ?? '';
                                 state.number = selectedRecord.number ?? '';
                                 state.name = selectedRecord.name ?? '';
+                                state.barcode = selectedRecord.barcode ?? '';
                                 state.unitPrice = selectedRecord.unitPrice ?? '';
                                 state.description = selectedRecord.description ?? '';
                                 state.productGroupId = selectedRecord.productGroupId ?? '';
@@ -635,6 +596,7 @@
                                 state.id = selectedRecord.id ?? '';
                                 state.number = selectedRecord.number ?? '';
                                 state.name = selectedRecord.name ?? '';
+                                state.barcode = selectedRecord.barcode ?? '';
                                 state.unitPrice = selectedRecord.unitPrice ?? '';
                                 state.description = selectedRecord.description ?? '';
                                 state.productGroupId = selectedRecord.productGroupId ?? '';
@@ -672,6 +634,15 @@
             (newVal, oldVal) => {
                 if (numberText.obj) {
                     numberText.refresh();
+                }
+            }
+        );
+
+        Vue.watch(
+            () => state.barcode,
+            (newVal, oldVal) => {
+                if (barcodeText.obj) {
+                    barcodeText.refresh();
                 }
             }
         );
@@ -754,6 +725,7 @@
                 // Create form controls
                 nameText.create();
                 numberText.create();
+                barcodeText.create();
                 unitPriceNumber.create();
 
                 // Add modal event listener
@@ -791,6 +763,7 @@
             taxIdRef,
             nameRef,
             numberRef,
+            barcodeRef,
             unitPriceRef,
             state,
             handler,

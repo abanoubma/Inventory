@@ -14,6 +14,7 @@
             description: '',
             customerId: null,
             orderStatus: null,
+            barcode: '',
             errors: {
                 orderDate: '',
                 customerId: '',
@@ -34,6 +35,7 @@
         const customerIdRef = Vue.ref(null);
         const orderStatusRef = Vue.ref(null);
         const secondaryGridRef = Vue.ref(null);
+        const barcodeRef = Vue.ref(null);
 
         const validateForm = function () {
             state.errors.orderDate = '';
@@ -61,6 +63,7 @@
             state.description = '';
             state.customerId = null;
             state.orderStatus = null;
+            state.barcode = '';
             state.errors = {
                 orderDate: '',
                 customerId: '',
@@ -174,6 +177,22 @@
                 } catch (error) {
                     throw error;
                 }
+            },
+            getProductByNumber: async (number) => {
+                try {
+                    const response = await AxiosManager.get('/Product/GetProductByNumber?number=' + number, {});
+                    return response;
+                } catch (error) {
+                    throw error;
+                }
+            },
+            getProductByBarcode: async (barcode) => {
+                try {
+                    const response = await AxiosManager.get(`/Product/GetProductByBarcode?barcode=${encodeURIComponent(barcode)}`, {});
+                    return response;
+                } catch (error) {
+                    throw error;
+                }
             }
         };
 
@@ -210,6 +229,130 @@
                 const response = await services.getProductListLookupData();
                 state.productListLookupData = response?.data?.content?.data;
             },
+            //addProductByBarcode: async () => {
+            //    if (!state.barcode) return;
+
+            //    try {
+            //        const response = await services.getProductByNumber(state.barcode);
+            //        if (response.data.code === 200 && response.data.content.data) {
+            //            const product = response.data.content.data;
+            //            const salesOrderId = state.id;
+            //            const userId = StorageManager.getUserId();
+            //            const unitPrice = product.unitPrice || 0;
+            //            const quantity = 1;
+            //            const summary = product.description || '';
+            //            const productId = product.id;
+
+            //            const vatPercentage = product.vatPercentage || 0;
+            //            const taxPercentage = product.taxPercentage || 0;
+            //            const vatAmount = unitPrice * (vatPercentage / 100);
+            //            const taxAmount = unitPrice * (taxPercentage / 100);
+            //            const total = (unitPrice + vatAmount + taxAmount) * quantity;
+
+            //            await services.createSecondaryData(unitPrice, quantity, summary, productId, salesOrderId, userId);
+            //            await methods.populateSecondaryData(salesOrderId);
+            //            secondaryGrid.refresh();
+
+            //            state.barcode = ''; // Clear barcode input
+            //            barcodeRef.value.focus(); // Refocus on barcode input
+
+            //            Swal.fire({
+            //                icon: 'success',
+            //                title: 'Product Added',
+            //                timer: 1000,
+            //                showConfirmButton: false
+            //            });
+            //        } else {
+            //            Swal.fire({
+            //                icon: 'error',
+            //                title: 'Product Not Found',
+            //                text: 'No product found with this barcode.',
+            //                confirmButtonText: 'OK'
+            //            });
+            //        }
+            //    } catch (error) {
+            //        Swal.fire({
+            //            icon: 'error',
+            //            title: 'Error',
+            //            text: 'Failed to add product.',
+            //            confirmButtonText: 'OK'
+            //        });
+            //    }
+            //},
+            addProductByBarcode: async () => {
+                if (!state.barcode) return;
+
+                try {
+                    // First try to find product by barcode
+                    let product = null;
+
+                    // Search in local product list first
+                    product = state.productListLookupData.find(p =>
+                        p.barcode && p.barcode.toLowerCase() === state.barcode.toLowerCase()
+                    );
+
+                    // If not found locally, try API search
+                    if (!product) {
+                        const response = await services.getProductByBarcode(state.barcode);
+                        if (response.data.code === 200 && response.data.content.data) {
+                            product = response.data.content.data;
+                            // Add to local product list if not already present
+                            const existingProduct = state.productListLookupData.find(p => p.id === product.id);
+                            if (!existingProduct) {
+                                state.productListLookupData.push(product);
+                            }
+                        }
+                    }
+
+                    if (product) {
+                        const salesOrderId = state.id;
+                        const userId = StorageManager.getUserId();
+                        const unitPrice = product.unitPrice || 0;
+                        const quantity = 1;
+                        const summary = product.description || '';
+                        const productId = product.id;
+
+                        const vatPercentage = product.vatPercentage || 0;
+                        const taxPercentage = product.taxPercentage || 0;
+                        const vatAmount = unitPrice * (vatPercentage / 100);
+                        const taxAmount = unitPrice * (taxPercentage / 100);
+                        const total = (unitPrice + vatAmount + taxAmount) * quantity;
+
+                        await services.createSecondaryData(unitPrice, quantity, summary, productId, salesOrderId, userId);
+                        await methods.populateSecondaryData(salesOrderId);
+                        secondaryGrid.refresh();
+
+                        state.barcode = ''; // Clear barcode input
+                        if (barcodeRef.value) {
+                            barcodeRef.value.focus(); // Refocus on barcode input
+                        }
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Product Added',
+                            text: `Added ${product.name} via barcode`,
+                            timer: 1000,
+                            showConfirmButton: false
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Product Not Found',
+                            text: 'No product found with this barcode.',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                } catch (error) {
+                    console.error('Barcode scan error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Failed to add product. Please try again.',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            },
+
             refreshPaymentSummary: async (id) => {
                 const record = state.mainData.find(item => item.id === id);
                 if (record) {
@@ -232,7 +375,7 @@
                         ? await services.createMainData(state.orderDate, state.description, state.orderStatus, state.customerId, StorageManager.getUserId())
                         : state.deleteMode
                             ? await services.deleteMainData(state.id, StorageManager.getUserId())
-                            : await services.updateMainData(state.id, state.orderDate, state.description, orderStatus, customerId, StorageManager.getUserId());
+                            : await services.updateMainData(state.id, state.orderDate, state.description, state.orderStatus, state.customerId, StorageManager.getUserId());
 
                     if (response.data.code === 200) {
                         await methods.populateMainData();
@@ -598,6 +741,17 @@
                                         dataSource: state.productListLookupData,
                                         fields: { value: 'id', text: 'name' },
                                         value: args.rowData.productId,
+                                        placeholder: 'Select a Product',
+                                        filterBarPlaceholder: 'Search',
+                                        allowFiltering: true,
+                                        filtering: (e) => {
+                                            e.preventDefaultAction = true;
+                                            let query = new ej.data.Query();
+                                            if (e.text !== '') {
+                                                query = query.where('name', 'startsWith', e.text, true);
+                                            }
+                                            e.updateData(state.productListLookupData, query);
+                                        },
                                         change: (e) => {
                                             const selectedProduct = state.productListLookupData.find(item => item.id === e.value);
                                             if (selectedProduct) {
@@ -619,19 +773,44 @@
                                                     const vatAmount = basePrice * (vatPercentage / 100);
                                                     const taxAmount = basePrice * (taxPercentage / 100);
                                                     const total = (basePrice + vatAmount + taxAmount) * quantityObj.value;
-                                                    if (totalObj) {
-                                                        totalObj.value = total;
-                                                    }
                                                     if (totalPriceObj) {
                                                         totalPriceObj.value = total;
                                                     }
                                                 }
                                             }
                                         },
-                                        placeholder: 'Select a Product',
                                         floatLabelType: 'Never'
                                     });
                                     productObj.appendTo(args.element);
+                                }
+                            }
+                        },
+                        {
+                            field: 'barcode',
+                            headerText: 'Barcode',
+                            width: 150,
+                            allowEditing: false,
+                            valueAccessor: (field, data, column) => {
+                                const product = state.productListLookupData.find(item => item.id === data['productId']);
+                                return product ? (product.barcode || '') : '';
+                            },
+                            edit: {
+                                create: () => {
+                                    let barcodeElem = document.createElement('input');
+                                    return barcodeElem;
+                                },
+                                read: () => {
+                                    return barcodeObj.value;
+                                },
+                                destroy: () => {
+                                    barcodeObj.destroy();
+                                },
+                                write: (args) => {
+                                    barcodeObj = new ej.inputs.TextBox();
+                                    const product = state.productListLookupData.find(item => item.id === args.rowData.productId);
+                                    barcodeObj.value = product ? (product.barcode || '') : '';
+                                    barcodeObj.readonly = true;
+                                    barcodeObj.appendTo(args.element);
                                 }
                             }
                         },
@@ -654,14 +833,13 @@
                                     priceObj = new ej.inputs.NumericTextBox({
                                         value: args.rowData.unitPrice ?? 0,
                                         change: (e) => {
-                                            if (quantityObj && totalObj && totalPriceObj) {
+                                            if (quantityObj && totalPriceObj) {
                                                 const selectedProduct = state.productListLookupData.find(item => item.id === args.rowData.productId);
                                                 const vatPercentage = selectedProduct?.vatPercentage || 0;
                                                 const taxPercentage = selectedProduct?.taxPercentage || 0;
                                                 const vatAmount = e.value * (vatPercentage / 100);
                                                 const taxAmount = e.value * (taxPercentage / 100);
                                                 const total = (e.value + vatAmount + taxAmount) * quantityObj.value;
-                                                totalObj.value = total;
                                                 totalPriceObj.value = total;
                                             }
                                         }
@@ -696,14 +874,13 @@
                                     quantityObj = new ej.inputs.NumericTextBox({
                                         value: args.rowData.quantity ?? 0,
                                         change: (e) => {
-                                            if (priceObj && totalObj && totalPriceObj) {
+                                            if (priceObj && totalPriceObj) {
                                                 const selectedProduct = state.productListLookupData.find(item => item.id === args.rowData.productId);
                                                 const vatPercentage = selectedProduct?.vatPercentage || 0;
                                                 const taxPercentage = selectedProduct?.taxPercentage || 0;
                                                 const vatAmount = priceObj.value * (vatPercentage / 100);
                                                 const taxAmount = priceObj.value * (taxPercentage / 100);
                                                 const total = (priceObj.value + vatAmount + taxAmount) * e.value;
-                                                totalObj.value = total;
                                                 totalPriceObj.value = total;
                                             }
                                         }
@@ -734,7 +911,7 @@
                         },
                         {
                             field: 'totalPrice',
-                            headerText: 'Total',
+                            headerText: 'Total Price',
                             width: 200,
                             type: 'number',
                             format: 'N2',
@@ -769,7 +946,7 @@
                                     totalPriceObj.appendTo(args.element);
                                 }
                             }
-                        },                     
+                        },
                         {
                             field: 'productNumber',
                             headerText: 'Product Number',
@@ -956,6 +1133,7 @@
             customerIdRef,
             orderStatusRef,
             secondaryGridRef,
+            barcodeRef,
             state,
             methods,
             handler: {

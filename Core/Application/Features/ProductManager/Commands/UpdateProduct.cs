@@ -14,6 +14,7 @@ public class UpdateProductRequest : IRequest<UpdateProductResult>
 {
     public string? Id { get; init; }
     public string? Name { get; init; }
+    public string? Barcode { get; set; } // New
     public string? Description { get; init; }
     public double? UnitPrice { get; init; }
     public bool? Physical { get; init; } = true;
@@ -73,7 +74,7 @@ public class UpdateProductHandler : IRequestHandler<UpdateProductRequest, Update
         entity.ProductGroupId = request.ProductGroupId;
         entity.VatId = request.VatId;          // Added VAT
         entity.TaxId = request.TaxId;          // Added 
-
+        entity.Barcode = request.Barcode;
         _repository.Update(entity);
         await _unitOfWork.SaveAsync(cancellationToken);
 
