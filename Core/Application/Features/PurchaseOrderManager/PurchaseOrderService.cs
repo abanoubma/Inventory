@@ -25,33 +25,49 @@ public class PurchaseOrderService
     // csharp
     public void Recalculate(string purchaseOrderId)
     {
-        var purchaseOrder = _purchaseOrderRepository
-            .GetQuery()
-            .ApplyIsDeletedFilter()
-            .Where(x => x.Id == purchaseOrderId)
-            .Include(x => x.PurchaseOrderTaxes)
-                .ThenInclude(pt => pt.Tax)
-            .SingleOrDefault();
+        var purchaseOrder = _purchaseOrderRepository.GetQuery()
+            .Include(po => po.PurchaseOrderItemList)
+                .ThenInclude(item => item.Product)
+                    .ThenInclude(p => p.Tax)
+            .Include(po => po.PurchaseOrderItemList)
+                .ThenInclude(item => item.Product)
+                    .ThenInclude(p => p.Vat)
+            .FirstOrDefault(x => x.Id == purchaseOrderId);
 
-        if (purchaseOrder == null)
-            return;
+        if (purchaseOrder == null) return;
 
-        var purchaseOrderItems = _purchaseOrderItemRepository
-            .GetQuery()
-            .ApplyIsDeletedFilter()
-            .Where(x => x.PurchaseOrderId == purchaseOrderId)
-            .ToList();
+        // Use decimal for precise financial calculations
+        decimal subtotal = 0;
+        decimal totalTax = 0;
+        decimal totalVat = 0;
 
-        // Use double (not decimal) to match existing double? properties
-        purchaseOrder.BeforeTaxAmount = purchaseOrderItems.Sum(x => x.Total ?? 0.0);
+        foreach (var item in purchaseOrder.PurchaseOrderItemList ?? new List<PurchaseOrderItem>())
+        {
+            // Convert double? to decimal for calculations
+            decimal quantity = (decimal)(item.Quantity ?? 0);
+            decimal unitPrice = (decimal)(item.UnitPrice ?? 0);
 
-        double totalPercentage = purchaseOrder.PurchaseOrderTaxes?
-            .Sum(pt => pt?.Tax?.Percentage ?? 0.0) ?? 0.0;
+            decimal itemTotal = quantity * unitPrice;
+            subtotal += itemTotal;
 
-        double before = purchaseOrder.BeforeTaxAmount ?? 0.0;
+            // Calculate tax from product
+            if (item.Product?.Tax?.Percentage != null)
+            {
+                decimal taxPercentage = (decimal)item.Product.Tax.Percentage.Value;
+                totalTax += itemTotal * (taxPercentage / 100m);
+            }
 
-        purchaseOrder.TaxAmount = before * totalPercentage / 100.0;
-        purchaseOrder.AfterTaxAmount = before + (purchaseOrder.TaxAmount ?? 0.0);
+            // Calculate VAT from product
+            if (item.Product?.Vat?.Percentage != null)
+            {
+                decimal vatPercentage = (decimal)item.Product.Vat.Percentage.Value;
+                totalVat += itemTotal * (vatPercentage / 100m);
+            }
+        }
+
+        purchaseOrder.BeforeTaxAmount = (double)subtotal;
+        purchaseOrder.TaxAmount = (double)(totalTax + totalVat);
+        purchaseOrder.AfterTaxAmount = (double)(subtotal + totalTax + totalVat);
 
         _purchaseOrderRepository.Update(purchaseOrder);
         _unitOfWork.Save();

@@ -14,11 +14,9 @@ public class CreatePurchaseOrderResult
 
 public class CreatePurchaseOrderRequest : IRequest<CreatePurchaseOrderResult>
 {
-    //public DateTime? OrderDate { get; init; }
     public string? OrderStatus { get; init; }
     public string? Description { get; init; }
     public string? VendorId { get; init; }
-    public List<string>? TaxId { get; init; }
     public string? CreatedById { get; init; }
 }
 
@@ -26,10 +24,8 @@ public class CreatePurchaseOrderValidator : AbstractValidator<CreatePurchaseOrde
 {
     public CreatePurchaseOrderValidator()
     {
-        //RuleFor(x => x.OrderDate).NotEmpty();
         RuleFor(x => x.OrderStatus).NotEmpty();
         RuleFor(x => x.VendorId).NotEmpty();
-        RuleFor(x => x.TaxId).NotEmpty();
     }
 }
 
@@ -63,26 +59,11 @@ public class CreatePurchaseOrderHandler : IRequestHandler<CreatePurchaseOrderReq
         entity.OrderStatus = (PurchaseOrderStatus)int.Parse(request.OrderStatus!);
         entity.Description = request.Description;
         entity.VendorId = request.VendorId;
-        //entity.TaxId = request.TaxId;
 
         await _repository.CreateAsync(entity, cancellationToken);
-
-        // Create SalesOrderTax entities for each tax ID
-        var purchaseOrderTaxes = new List<PurchaseOrderTax>();
-        foreach (var taxId in request.TaxId)
-        {
-            purchaseOrderTaxes.Add(new PurchaseOrderTax
-            {
-                TaxId = taxId,
-                PurchaseOrderId = entity.Id // This will be set after the SalesOrder is saved
-            });
-        }
-        // Add the taxes to the SalesOrder
-        entity.PurchaseOrderTaxes = purchaseOrderTaxes;
         await _unitOfWork.SaveAsync(cancellationToken);
 
-
-
+        // Recalculate totals (now based on product-level taxes)
         _purchaseOrderService.Recalculate(entity.Id);
 
         return new CreatePurchaseOrderResult

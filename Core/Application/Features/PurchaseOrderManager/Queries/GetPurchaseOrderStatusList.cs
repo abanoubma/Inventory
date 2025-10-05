@@ -27,10 +27,8 @@ public class GetPurchaseOrderStatusListRequest : IRequest<GetPurchaseOrderStatus
 {
 }
 
-
 public class GetPurchaseOrderStatusListHandler : IRequestHandler<GetPurchaseOrderStatusListRequest, GetPurchaseOrderStatusListResult>
 {
-
     public GetPurchaseOrderStatusListHandler()
     {
     }
@@ -53,9 +51,4 @@ public class GetPurchaseOrderStatusListHandler : IRequestHandler<GetPurchaseOrde
             Data = statuses
         };
     }
-
-
 }
-
-
-

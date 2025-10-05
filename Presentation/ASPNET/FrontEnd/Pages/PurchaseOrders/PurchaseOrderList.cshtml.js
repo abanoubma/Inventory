@@ -4,7 +4,6 @@
             mainData: [],
             deleteMode: false,
             vendorListLookupData: [],
-            taxListLookupData: [],
             purchaseOrderStatusListLookupData: [],
             secondaryData: [],
             productListLookupData: [],
@@ -14,12 +13,11 @@
             orderDate: '',
             description: '',
             vendorId: null,
-            taxId: null,
             orderStatus: null,
+            barcode: '',
             errors: {
                 orderDate: '',
                 vendorId: '',
-                taxId: '',
                 orderStatus: '',
                 description: ''
             },
@@ -35,28 +33,18 @@
         const orderDateRef = Vue.ref(null);
         const numberRef = Vue.ref(null);
         const vendorIdRef = Vue.ref(null);
-        const taxIdRef = Vue.ref(null);
         const orderStatusRef = Vue.ref(null);
         const secondaryGridRef = Vue.ref(null);
+        const barcodeRef = Vue.ref(null);
 
         const validateForm = function () {
-           /* state.errors.orderDate = '';*/
             state.errors.vendorId = '';
-            state.errors.taxId = '';
             state.errors.orderStatus = '';
 
             let isValid = true;
 
-            //if (!state.orderDate) {
-            //    state.errors.orderDate = 'Order date is required.';
-            //    isValid = false;
-            //}
             if (!state.vendorId) {
                 state.errors.vendorId = 'Vendor is required.';
-                isValid = false;
-            }
-            if (!state.taxId || state.taxId.length === 0) {
-                state.errors.taxId = 'At least one tax is required.';
                 isValid = false;
             }
             if (!state.orderStatus) {
@@ -73,12 +61,11 @@
             state.orderDate = '';
             state.description = '';
             state.vendorId = null;
-            state.taxId = [];
             state.orderStatus = null;
+            state.barcode = '';
             state.errors = {
                 orderDate: '',
                 vendorId: '',
-                taxId: '',
                 orderStatus: '',
                 description: ''
             };
@@ -98,20 +85,20 @@
                     throw error;
                 }
             },
-            createMainData: async (orderDate, description, orderStatus, taxId, vendorId, createdById) => {
+            createMainData: async (orderDate, description, orderStatus, vendorId, createdById) => {
                 try {
                     const response = await AxiosManager.post('/PurchaseOrder/CreatePurchaseOrder', {
-                        orderDate, description, orderStatus, taxId, vendorId, createdById
+                        orderDate, description, orderStatus, vendorId, createdById
                     });
                     return response;
                 } catch (error) {
                     throw error;
                 }
             },
-            updateMainData: async (id, orderDate, description, orderStatus, taxId, vendorId, updatedById) => {
+            updateMainData: async (id, orderDate, description, orderStatus, vendorId, updatedById) => {
                 try {
                     const response = await AxiosManager.post('/PurchaseOrder/UpdatePurchaseOrder', {
-                        id, orderDate, description, orderStatus, taxId, vendorId, updatedById
+                        id, orderDate, description, orderStatus, vendorId, updatedById
                     });
                     return response;
                 } catch (error) {
@@ -131,14 +118,6 @@
             getVendorListLookupData: async () => {
                 try {
                     const response = await AxiosManager.get('/Vendor/GetVendorList', {});
-                    return response;
-                } catch (error) {
-                    throw error;
-                }
-            },
-            getTaxListLookupData: async () => {
-                try {
-                    const response = await AxiosManager.get('/Tax/GetTaxList', {});
                     return response;
                 } catch (error) {
                     throw error;
@@ -197,6 +176,14 @@
                 } catch (error) {
                     throw error;
                 }
+            },
+            getProductByBarcode: async (barcode) => {
+                try {
+                    const response = await AxiosManager.get(`/Product/GetProductByBarcode?barcode=${encodeURIComponent(barcode)}`, {});
+                    return response;
+                } catch (error) {
+                    throw error;
+                }
             }
         };
 
@@ -204,10 +191,6 @@
             populateVendorListLookupData: async () => {
                 const response = await services.getVendorListLookupData();
                 state.vendorListLookupData = response?.data?.content?.data;
-            },
-            populateTaxListLookupData: async () => {
-                const response = await services.getTaxListLookupData();
-                state.taxListLookupData = response?.data?.content?.data;
             },
             populatePurchaseOrderStatusListLookupData: async () => {
                 const response = await services.getPurchaseOrderStatusListLookupData();
@@ -237,6 +220,68 @@
                 const response = await services.getProductListLookupData();
                 state.productListLookupData = response?.data?.content?.data;
             },
+            addProductByBarcode: async () => {
+                if (!state.barcode) return;
+
+                try {
+                    let product = null;
+                    product = state.productListLookupData.find(p =>
+                        p.barcode && p.barcode.toLowerCase() === state.barcode.toLowerCase()
+                    );
+
+                    if (!product) {
+                        const response = await services.getProductByBarcode(state.barcode);
+                        if (response.data.code === 200 && response.data.content.data) {
+                            product = response.data.content.data;
+                            const existingProduct = state.productListLookupData.find(p => p.id === product.id);
+                            if (!existingProduct) {
+                                state.productListLookupData.push(product);
+                            }
+                        }
+                    }
+
+                    if (product) {
+                        const purchaseOrderId = state.id;
+                        const userId = StorageManager.getUserId();
+                        const unitPrice = product.unitPrice || 0;
+                        const quantity = 1;
+                        const summary = product.description || '';
+                        const productId = product.id;
+
+                        await services.createSecondaryData(unitPrice, quantity, summary, productId, purchaseOrderId, userId);
+                        await methods.populateSecondaryData(purchaseOrderId);
+                        secondaryGrid.refresh();
+
+                        state.barcode = '';
+                        if (barcodeRef.value) {
+                            barcodeRef.value.focus();
+                        }
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Product Added',
+                            text: `Added ${product.name} via barcode`,
+                            timer: 1000,
+                            showConfirmButton: false
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Product Not Found',
+                            text: 'No product found with this barcode.',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                } catch (error) {
+                    console.error('Barcode scan error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Failed to add product. Please try again.',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            },
             refreshPaymentSummary: async (id) => {
                 const record = state.mainData.find(item => item.id === id);
                 if (record) {
@@ -256,10 +301,10 @@
 
                 try {
                     const response = state.id === ''
-                        ? await services.createMainData(state.orderDate, state.description, state.orderStatus, state.taxId, state.vendorId, StorageManager.getUserId())
+                        ? await services.createMainData(state.orderDate, state.description, state.orderStatus, state.vendorId, StorageManager.getUserId())
                         : state.deleteMode
                             ? await services.deleteMainData(state.id, StorageManager.getUserId())
-                            : await services.updateMainData(state.id, state.orderDate, state.description, state.orderStatus, state.taxId, state.vendorId, StorageManager.getUserId());
+                            : await services.updateMainData(state.id, state.orderDate, state.description, state.orderStatus, state.vendorId, StorageManager.getUserId());
 
                     if (response.data.code === 200) {
                         await methods.populateMainData();
@@ -272,8 +317,6 @@
                             state.orderDate = response?.data?.content?.data.orderDate ? new Date(response.data.content.data.orderDate) : null;
                             state.description = response?.data?.content?.data.description ?? '';
                             state.vendorId = response?.data?.content?.data.vendorId ?? '';
-                            state.taxId = response?.data?.content?.data.taxId ?? '';
-                            taxListLookup.trackingChange = true;
                             state.orderStatus = String(response?.data?.content?.data.orderStatus ?? '');
                             state.showComplexDiv = true;
 
@@ -321,9 +364,7 @@
             onMainModalHidden: () => {
                 state.errors.orderDate = '';
                 state.errors.vendorId = '';
-                state.errors.taxId = '';
                 state.errors.orderStatus = '';
-                taxListLookup.trackingChange = false;
             }
         };
 
@@ -356,71 +397,6 @@
             refresh: () => {
                 if (vendorListLookup.obj) {
                     vendorListLookup.obj.value = state.vendorId;
-                }
-            }
-        };
-
-        //const taxListLookup = {
-        //    obj: null,
-        //    trackingChange: false,
-        //    create: () => {
-        //        if (state.taxListLookupData && Array.isArray(state.taxListLookupData)) {
-        //            taxListLookup.obj = new ej.dropdowns.DropDownList({
-        //                dataSource: state.taxListLookupData,
-        //                fields: { value: 'id', text: 'name' },
-        //                placeholder: 'Select a Tax',
-        //                change: async (e) => {
-        //                    state.taxId = e.value;
-        //                    if (e.isInteracted && taxListLookup.trackingChange) {
-        //                        await methods.handleFormSubmit();
-        //                    }
-        //                }
-        //            });
-        //            taxListLookup.obj.appendTo(taxIdRef.value);
-        //        }
-        //    },
-        //    refresh: () => {
-        //        if (taxListLookup.obj) {
-        //            taxListLookup.obj.value = state.taxId;
-        //        }
-        //    }
-        //};
-        const taxListLookup = {
-            obj: null,
-            trackingChange: false,
-            create: () => {
-                if (state.taxListLookupData && Array.isArray(state.taxListLookupData)) {
-                    taxListLookup.obj = new ej.dropdowns.MultiSelect({
-                        dataSource: state.taxListLookupData,
-                        fields: { value: 'id', text: 'name' },
-                        placeholder: 'Select Taxes',
-                        mode: 'CheckBox',
-                        showSelectAll: true,
-                        showDropDownIcon: true,
-                        filterBarPlaceholder: 'Search Taxes',
-                        change: function (e) {
-                            // Store as array of values for multiple selection
-                            state.taxId = e.value;
-                            if (e.isInteracted && taxListLookup.trackingChange) {
-                                methods.handleFormSubmit().catch(error => {
-                                    console.error('Error in form submission:', error);
-                                });
-                            }
-                        },
-                        select: (e) => {
-                            console.log('Selected values:', e.value);
-                        },
-                        removed: (e) => {
-                            console.log('Removed values:', e.value);
-                        }
-                    });
-                    taxListLookup.obj.appendTo(taxIdRef.value);
-                }
-            },
-            refresh: () => {
-                if (taxListLookup.obj) {
-                    // Set the value as array for MultiSelect
-                    taxListLookup.obj.value = state.taxId || [];
                 }
             }
         };
@@ -494,14 +470,6 @@
         );
 
         Vue.watch(
-            () => state.taxId,
-            (newVal, oldVal) => {
-                taxListLookup.refresh();
-                state.errors.taxId = '';
-            }
-        );
-
-        Vue.watch(
             () => state.orderStatus,
             (newVal, oldVal) => {
                 purchaseOrderStatusListLookup.refresh();
@@ -540,27 +508,6 @@
                         { field: 'orderDate', headerText: 'PO Date', width: 150, format: 'yyyy-MM-dd' },
                         { field: 'vendorName', headerText: 'Vendor', width: 200, minWidth: 200 },
                         { field: 'orderStatusName', headerText: 'Status', width: 150, minWidth: 150 },
-                        //{ field: 'taxName', headerText: 'Tax', width: 150, minWidth: 150 },
-                        {
-                            field: 'taxes',
-                            headerText: 'Tax',
-                            width: 150,
-                            minWidth: 150,
-                            // join tax names into a single display string
-                            valueAccessor: function (field, data, column) {
-                                var taxes = data.taxes || data.Taxes || [];
-                                if (!Array.isArray(taxes) || taxes.length === 0) return '';
-                                var names = taxes
-                                    .map(function (t) {
-                                        if (!t) return null;
-                                        if (t.taxName) return t.taxName;
-                                        if (t.tax && t.tax.name) return t.tax.name;
-                                        return null;
-                                    })
-                                    .filter(Boolean);
-                                return names.length ? names.join(', ') : '';
-                            }
-                        },
                         { field: 'afterTaxAmount', headerText: 'Total Amount', width: 150, minWidth: 150, format: 'N2' },
                         { field: 'createdAtUtc', headerText: 'Created At UTC', width: 150, format: 'yyyy-MM-dd HH:mm' }
                     ],
@@ -576,7 +523,7 @@
                     beforeDataBound: () => { },
                     dataBound: function () {
                         mainGrid.obj.toolbarModule.enableItems(['EditCustom', 'DeleteCustom', 'PrintPDFCustom'], false);
-                        mainGrid.obj.autoFitColumns(['number', 'orderDate', 'vendorName', 'orderStatusName', 'taxes', 'afterTaxAmount', 'createdAtUtc']);
+                        mainGrid.obj.autoFitColumns(['number', 'orderDate', 'vendorName', 'orderStatusName', 'afterTaxAmount', 'createdAtUtc']);
                     },
                     excelExportComplete: () => { },
                     rowSelected: () => {
@@ -623,17 +570,6 @@
                                 state.orderDate = selectedRecord.orderDate ? new Date(selectedRecord.orderDate) : null;
                                 state.description = selectedRecord.description ?? '';
                                 state.vendorId = selectedRecord.vendorId ?? '';
-                                /*state.taxId = selectedRecord.taxId ?? '';*/
-                                state.taxId = (selectedRecord.taxes || selectedRecord.Taxes || [])
-                                    .map(function (t) { return t ? (t.taxId || (t.tax && t.tax.id)) : null; })
-                                    .filter(Boolean);
-
-                                // if you want a display string of tax names for the UI:
-                                state.taxNames = (selectedRecord.taxes || selectedRecord.Taxes || [])
-                                    .map(function (t) { return t ? (t.taxName || (t.tax && t.tax.name)) : null; })
-                                    .filter(Boolean)
-                                    .join(', ');
-                                taxListLookup.trackingChange = true;
                                 state.orderStatus = String(selectedRecord.orderStatus ?? '');
                                 state.showComplexDiv = true;
 
@@ -654,7 +590,6 @@
                                 state.orderDate = selectedRecord.orderDate ? new Date(selectedRecord.orderDate) : null;
                                 state.description = selectedRecord.description ?? '';
                                 state.vendorId = selectedRecord.vendorId ?? '';
-                                state.taxId = selectedRecord.taxId ?? '';
                                 state.orderStatus = String(selectedRecord.orderStatus ?? '');
                                 state.showComplexDiv = false;
 
@@ -688,7 +623,7 @@
                     height: 400,
                     dataSource: dataSource,
                     editSettings: { allowEditing: true, allowAdding: true, allowDeleting: true, showDeleteConfirmDialog: true, mode: 'Normal', allowEditOnDblClick: true },
-                    allowFiltering: false,
+                    allowFiltering: true,
                     allowSorting: true,
                     allowSelection: true,
                     allowGrouping: false,
@@ -696,12 +631,12 @@
                     allowResizing: true,
                     allowPaging: false,
                     allowExcelExport: true,
-                    filterSettings: { type: 'CheckBox' },
+                    filterSettings: { type: 'Excel' },
                     sortSettings: { columns: [{ field: 'productName', direction: 'Descending' }] },
                     pageSettings: { currentPage: 1, pageSize: 50, pageSizes: ["10", "20", "50", "100", "200", "All"] },
                     selectionSettings: { persistSelection: true, type: 'Single' },
                     autoFit: false,
-                    showColumnMenu: false,
+                    showColumnMenu: true,
                     gridLines: 'Horizontal',
                     columns: [
                         { type: 'checkbox', width: 60 },
@@ -730,34 +665,98 @@
                                 destroy: () => {
                                     productObj.destroy();
                                 },
-                                write: (args) => {
+                                write: async (args) => {
                                     productObj = new ej.dropdowns.DropDownList({
                                         dataSource: state.productListLookupData,
                                         fields: { value: 'id', text: 'name' },
                                         value: args.rowData.productId,
-                                        change: (e) => {
+                                        placeholder: 'Select a Product',
+                                        filterBarPlaceholder: 'Search by Name or Barcode',
+                                        allowFiltering: true,
+                                        filtering: async (e) => {
+                                            e.preventDefaultAction = true;
+                                            let query = new ej.data.Query();
+                                            if (e.text && e.text.trim() !== '') {
+                                                const searchText = e.text.toLowerCase();
+                                                let namePredicate = new ej.data.Predicate('name', 'contains', searchText, true);
+                                                let barcodePredicate = new ej.data.Predicate('barcode', 'contains', searchText, true);
+                                                query = query.where(namePredicate.or(barcodePredicate));
+
+                                                let filteredData = state.productListLookupData.filter(item =>
+                                                    item.name.toLowerCase().includes(searchText) ||
+                                                    (item.barcode && item.barcode.toLowerCase().includes(searchText))
+                                                );
+
+                                                if (filteredData.length === 0) {
+                                                    try {
+                                                        const response = await services.getProductByBarcode(searchText);
+                                                        if (response.data.code === 200 && response.data.content.data) {
+                                                            const product = response.data.content.data;
+                                                            const existingProduct = state.productListLookupData.find(p => p.id === product.id);
+                                                            if (!existingProduct) {
+                                                                state.productListLookupData.push(product);
+                                                                filteredData.push(product);
+                                                            }
+                                                        }
+                                                    } catch (error) {
+                                                        console.error('API search error:', error);
+                                                    }
+                                                }
+                                                e.updateData(filteredData, query);
+                                            } else {
+                                                e.updateData(state.productListLookupData, query);
+                                            }
+                                        },
+                                        change: async (e) => {
                                             const selectedProduct = state.productListLookupData.find(item => item.id === e.value);
                                             if (selectedProduct) {
                                                 args.rowData.productId = selectedProduct.id;
+                                                if (barcodeObj) {
+                                                    barcodeObj.value = selectedProduct.barcode || '';
+                                                }
                                                 if (numberObj) {
                                                     numberObj.value = selectedProduct.number;
                                                 }
                                                 if (priceObj) {
-                                                    priceObj.value = selectedProduct.unitPrice;
+                                                    priceObj.value = selectedProduct.unitPrice || 0;
                                                 }
                                                 if (summaryObj) {
-                                                    summaryObj.value = selectedProduct.description;
+                                                    summaryObj.value = selectedProduct.description || '';
                                                 }
                                                 if (quantityObj) {
                                                     quantityObj.value = 1;
-                                                    const total = selectedProduct.unitPrice * quantityObj.value;
-                                                    if (totalObj) {
-                                                        totalObj.value = total;
+                                                    const basePrice = selectedProduct.unitPrice || 0;
+                                                    const vatPercentage = selectedProduct.vatPercentage || 0;
+                                                    const taxPercentage = selectedProduct.taxPercentage || 0;
+                                                    const vatAmount = basePrice * (vatPercentage / 100);
+                                                    const taxAmount = basePrice * (taxPercentage / 100);
+                                                    const total = (basePrice + vatAmount + taxAmount) * quantityObj.value;
+                                                    if (totalPriceObj) {
+                                                        totalPriceObj.value = total;
                                                     }
                                                 }
+                                                const purchaseOrderId = state.id;
+                                                const userId = StorageManager.getUserId();
+                                                await services.createSecondaryData(
+                                                    selectedProduct.unitPrice || 0,
+                                                    1,
+                                                    selectedProduct.description || '',
+                                                    selectedProduct.id,
+                                                    purchaseOrderId,
+                                                    userId
+                                                );
+                                                await methods.populateSecondaryData(purchaseOrderId);
+                                                secondaryGrid.refresh();
+
+                                                Swal.fire({
+                                                    icon: 'success',
+                                                    title: 'Product Added',
+                                                    text: `Added ${selectedProduct.name} via selection`,
+                                                    timer: 1000,
+                                                    showConfirmButton: false
+                                                });
                                             }
                                         },
-                                        placeholder: 'Select a Product',
                                         floatLabelType: 'Never'
                                     });
                                     productObj.appendTo(args.element);
@@ -765,9 +764,42 @@
                             }
                         },
                         {
+                            field: 'barcode',
+                            headerText: 'Barcode',
+                            width: 150,
+                            allowEditing: false,
+                            valueAccessor: (field, data, column) => {
+                                const product = state.productListLookupData.find(item => item.id === data['productId']);
+                                return product ? (product.barcode || '') : '';
+                            },
+                            edit: {
+                                create: () => {
+                                    let barcodeElem = document.createElement('input');
+                                    return barcodeElem;
+                                },
+                                read: () => {
+                                    return barcodeObj.value;
+                                },
+                                destroy: () => {
+                                    barcodeObj.destroy();
+                                },
+                                write: (args) => {
+                                    barcodeObj = new ej.inputs.TextBox({
+                                        value: args.rowData.barcode || '',
+                                        readonly: true
+                                    });
+                                    barcodeObj.appendTo(args.element);
+                                }
+                            }
+                        },
+                        {
                             field: 'unitPrice',
                             headerText: 'Unit Price',
-                            width: 200, validationRules: { required: true }, type: 'number', format: 'N2', textAlign: 'Right',
+                            width: 200,
+                            validationRules: { required: true, min: 0 },
+                            type: 'number',
+                            format: 'N2',
+                            textAlign: 'Right',
                             edit: {
                                 create: () => {
                                     let priceElem = document.createElement('input');
@@ -782,10 +814,16 @@
                                 write: (args) => {
                                     priceObj = new ej.inputs.NumericTextBox({
                                         value: args.rowData.unitPrice ?? 0,
+                                        min: 0,
                                         change: (e) => {
-                                            if (quantityObj && totalObj) {
-                                                const total = e.value * quantityObj.value;
-                                                totalObj.value = total;
+                                            if (quantityObj && totalPriceObj) {
+                                                const selectedProduct = state.productListLookupData.find(item => item.id === args.rowData.productId);
+                                                const vatPercentage = selectedProduct?.vatPercentage || 0;
+                                                const taxPercentage = selectedProduct?.taxPercentage || 0;
+                                                const vatAmount = e.value * (vatPercentage / 100);
+                                                const taxAmount = e.value * (taxPercentage / 100);
+                                                const total = (e.value + vatAmount + taxAmount) * quantityObj.value;
+                                                totalPriceObj.value = total;
                                             }
                                         }
                                     });
@@ -803,7 +841,9 @@
                                     return args['value'] > 0;
                                 }, 'Must be a positive number and not zero']
                             },
-                            type: 'number', format: 'N2', textAlign: 'Right',
+                            type: 'number',
+                            format: 'N2',
+                            textAlign: 'Right',
                             edit: {
                                 create: () => {
                                     let quantityElem = document.createElement('input');
@@ -818,10 +858,16 @@
                                 write: (args) => {
                                     quantityObj = new ej.inputs.NumericTextBox({
                                         value: args.rowData.quantity ?? 0,
+                                        min: 1,
                                         change: (e) => {
-                                            if (priceObj && totalObj) {
-                                                const total = e.value * priceObj.value;
-                                                totalObj.value = total;
+                                            if (priceObj && totalPriceObj) {
+                                                const selectedProduct = state.productListLookupData.find(item => item.id === args.rowData.productId);
+                                                const vatPercentage = selectedProduct?.vatPercentage || 0;
+                                                const taxPercentage = selectedProduct?.taxPercentage || 0;
+                                                const vatAmount = priceObj.value * (vatPercentage / 100);
+                                                const taxAmount = priceObj.value * (taxPercentage / 100);
+                                                const total = (priceObj.value + vatAmount + taxAmount) * e.value;
+                                                totalPriceObj.value = total;
                                             }
                                         }
                                     });
@@ -830,26 +876,60 @@
                             }
                         },
                         {
-                            field: 'total',
-                            headerText: 'Total',
-                            width: 200, validationRules: { required: false }, type: 'number', format: 'N2', textAlign: 'Right',
+                            field: 'vatName',
+                            headerText: 'VAT',
+                            width: 150,
+                            allowEditing: false,
+                            valueAccessor: (field, data, column) => {
+                                const product = state.productListLookupData.find(item => item.id === data['productId']);
+                                return product ? product.vatName || 'Not Set' : 'Not Set';
+                            }
+                        },
+                        {
+                            field: 'taxName',
+                            headerText: 'Tax',
+                            width: 150,
+                            allowEditing: false,
+                            valueAccessor: (field, data, column) => {
+                                const product = state.productListLookupData.find(item => item.id === data['productId']);
+                                return product ? product.taxName || 'Not Set' : 'Not Set';
+                            }
+                        },
+                        {
+                            field: 'totalPrice',
+                            headerText: 'Total Price',
+                            width: 200,
+                            type: 'number',
+                            format: 'N2',
+                            textAlign: 'Right',
+                            allowEditing: false,
+                            valueAccessor: (field, data, column) => {
+                                const product = state.productListLookupData.find(item => item.id === data['productId']);
+                                const unitPrice = data['unitPrice'] || (product ? product.unitPrice : 0);
+                                const quantity = data['quantity'] || 0;
+                                const vatPercentage = product?.vatPercentage || 0;
+                                const taxPercentage = product?.taxPercentage || 0;
+                                const vatAmount = unitPrice * (vatPercentage / 100);
+                                const taxAmount = unitPrice * (taxPercentage / 100);
+                                return (unitPrice + vatAmount + taxAmount) * quantity;
+                            },
                             edit: {
                                 create: () => {
-                                    let totalElem = document.createElement('input');
-                                    return totalElem;
+                                    let totalPriceElem = document.createElement('input');
+                                    return totalPriceElem;
                                 },
                                 read: () => {
-                                    return totalObj.value;
+                                    return totalPriceObj.value;
                                 },
                                 destroy: () => {
-                                    totalObj.destroy();
+                                    totalPriceObj.destroy();
                                 },
                                 write: (args) => {
-                                    totalObj = new ej.inputs.NumericTextBox({
-                                        value: args.rowData.total ?? 0,
+                                    totalPriceObj = new ej.inputs.NumericTextBox({
+                                        value: args.rowData.totalPrice ?? 0,
                                         readonly: true
                                     });
-                                    totalObj.appendTo(args.element);
+                                    totalPriceObj.appendTo(args.element);
                                 }
                             }
                         },
@@ -898,12 +978,13 @@
                                     summaryObj.appendTo(args.element);
                                 }
                             }
-                        },
+                        }
                     ],
                     toolbar: [
                         'ExcelExport',
                         { type: 'Separator' },
                         'Add', 'Edit', 'Delete', 'Update', 'Cancel',
+                        'Search'
                     ],
                     beforeDataBound: () => { },
                     dataBound: function () { },
@@ -1016,8 +1097,6 @@
                 mainModalRef.value?.addEventListener('hidden.bs.modal', methods.onMainModalHidden);
                 await methods.populateVendorListLookupData();
                 vendorListLookup.create();
-                await methods.populateTaxListLookupData();
-                taxListLookup.create();
                 await methods.populatePurchaseOrderStatusListLookupData();
                 purchaseOrderStatusListLookup.create();
                 orderDatePicker.create();
@@ -1026,8 +1105,6 @@
                 await secondaryGrid.create(state.secondaryData);
             } catch (e) {
                 console.error('page init error:', e);
-            } finally {
-                
             }
         });
 
@@ -1041,9 +1118,9 @@
             orderDateRef,
             numberRef,
             vendorIdRef,
-            taxIdRef,
             orderStatusRef,
             secondaryGridRef,
+            barcodeRef,
             state,
             methods,
             handler: {

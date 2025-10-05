@@ -7,7 +7,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.Features.PurchaseOrderManager.Queries;
 
-
 public class GetPurchaseOrderSingleProfile : Profile
 {
     public GetPurchaseOrderSingleProfile()
@@ -50,8 +49,6 @@ public class GetPurchaseOrderSingleHandler : IRequestHandler<GetPurchaseOrderSin
             .PurchaseOrder
             .AsNoTracking()
             .Include(x => x.Vendor)
-            .Include(x => x.PurchaseOrderTaxes)
-               .ThenInclude(t => t.Tax)
             .Include(x => x.PurchaseOrderItemList.Where(item => !item.IsDeleted))
                 .ThenInclude(x => x.Product)
             .Where(x => x.Id == request.Id)

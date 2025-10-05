@@ -687,6 +687,421 @@
             }
         };
 
+        //const secondaryGrid = {
+        //    obj: null,
+        //    create: async (dataSource) => {
+        //        secondaryGrid.obj = new ej.grids.Grid({
+        //            height: 400,
+        //            dataSource: dataSource,
+        //            editSettings: { allowEditing: true, allowAdding: true, allowDeleting: true, showDeleteConfirmDialog: true, mode: 'Normal', allowEditOnDblClick: true },
+        //            allowFiltering: true, // Enable grid-level filtering
+        //            allowSorting: true,
+        //            allowSelection: true,
+        //            allowGrouping: false,
+        //            allowTextWrap: true,
+        //            allowResizing: true,
+        //            allowPaging: false,
+        //            allowExcelExport: true,
+        //            filterSettings: { type: 'Excel' }, // Use Excel-style filtering for better control
+        //            sortSettings: { columns: [{ field: 'productName', direction: 'Descending' }] },
+        //            pageSettings: { currentPage: 1, pageSize: 50, pageSizes: ["10", "20", "50", "100", "200", "All"] },
+        //            selectionSettings: { persistSelection: true, type: 'Single' },
+        //            autoFit: false,
+        //            showColumnMenu: true, // Enable column menu for filtering options
+        //            gridLines: 'Horizontal',
+        //            columns: [
+        //                { type: 'checkbox', width: 60 },
+        //                {
+        //                    field: 'id', isPrimaryKey: true, headerText: 'Id', visible: false
+        //                },
+        //                {
+        //                    field: 'productId',
+        //                    headerText: 'Product',
+        //                    width: 250,
+        //                    validationRules: { required: true },
+        //                    disableHtmlEncode: false,
+        //                    valueAccessor: (field, data, column) => {
+        //                        const product = state.productListLookupData.find(item => item.id === data[field]);
+        //                        return product ? `${product.name}` : '';
+        //                    },
+        //                    editType: 'dropdownedit',
+        //                    edit: {
+        //                        create: () => {
+        //                            let productElem = document.createElement('input');
+        //                            return productElem;
+        //                        },
+        //                        read: () => {
+        //                            return productObj.value;
+        //                        },
+        //                        destroy: () => {
+        //                            productObj.destroy();
+        //                        },
+        //                        write: (args) => {
+        //                            productObj = new ej.dropdowns.DropDownList({
+        //                                dataSource: state.productListLookupData,
+        //                                fields: { value: 'id', text: 'name' },
+        //                                value: args.rowData.productId,
+        //                                placeholder: 'Select a Product',
+        //                                filterBarPlaceholder: 'Search by Name or Barcode',
+        //                                allowFiltering: true,
+        //                                filtering: (e) => {
+        //                                    e.preventDefaultAction = true;
+        //                                    let query = new ej.data.Query();
+        //                                    if (e.text !== '') {
+        //                                        let namePredicate = new ej.data.Predicate('name', 'startswith', e.text, true);
+        //                                        let barcodePredicate = new ej.data.Predicate('barcode', 'startswith', e.text, true);
+        //                                        query = query.where(namePredicate.or(barcodePredicate));
+        //                                    }
+        //                                    e.updateData(state.productListLookupData, query);
+        //                                },
+        //                                change: (e) => {
+        //                                    const selectedProduct = state.productListLookupData.find(item => item.id === e.value);
+        //                                    if (selectedProduct) {
+        //                                        args.rowData.productId = selectedProduct.id;
+        //                                        if (barcodeObj) {
+        //                                            barcodeObj.value = selectedProduct.barcode || '';
+        //                                        }
+        //                                        if (numberObj) {
+        //                                            numberObj.value = selectedProduct.number;
+        //                                        }
+        //                                        if (priceObj) {
+        //                                            priceObj.value = selectedProduct.unitPrice || 0;
+        //                                        }
+        //                                        if (summaryObj) {
+        //                                            summaryObj.value = selectedProduct.description || '';
+        //                                        }
+        //                                        if (quantityObj) {
+        //                                            quantityObj.value = 1;
+        //                                            const basePrice = selectedProduct.unitPrice || 0;
+        //                                            const vatPercentage = selectedProduct.vatPercentage || 0;
+        //                                            const taxPercentage = selectedProduct.taxPercentage || 0;
+        //                                            const vatAmount = basePrice * (vatPercentage / 100);
+        //                                            const taxAmount = basePrice * (taxPercentage / 100);
+        //                                            const total = (basePrice + vatAmount + taxAmount) * quantityObj.value;
+        //                                            if (totalPriceObj) {
+        //                                                totalPriceObj.value = total;
+        //                                            }
+        //                                        }
+        //                                    }
+        //                                },
+        //                                floatLabelType: 'Never'
+        //                            });
+        //                            productObj.appendTo(args.element);
+        //                        }
+        //                    }
+        //                },
+        //                {
+        //                    field: 'barcode',
+        //                    headerText: 'Barcode',
+        //                    width: 150,
+        //                    allowEditing: false,
+        //                    valueAccessor: (field, data, column) => {
+        //                        const product = state.productListLookupData.find(item => item.id === data['productId']);
+        //                        return product ? (product.barcode || '') : '';
+        //                    },
+        //                    edit: {
+        //                        create: () => {
+        //                            let barcodeElem = document.createElement('input');
+        //                            return barcodeElem;
+        //                        },
+        //                        read: () => {
+        //                            return barcodeObj.value;
+        //                        },
+        //                        destroy: () => {
+        //                            barcodeObj.destroy();
+        //                        },
+        //                        write: (args) => {
+        //                            barcodeObj = new ej.inputs.TextBox({
+        //                                value: args.rowData.barcode || '',
+        //                                readonly: true
+        //                            });
+        //                            barcodeObj.appendTo(args.element);
+        //                        }
+        //                    }
+        //                },
+        //                {
+        //                    field: 'unitPrice',
+        //                    headerText: 'Unit Price',
+        //                    width: 200,
+        //                    validationRules: { required: true, min: 0 },
+        //                    type: 'number',
+        //                    format: 'N2',
+        //                    textAlign: 'Right',
+        //                    edit: {
+        //                        create: () => {
+        //                            let priceElem = document.createElement('input');
+        //                            return priceElem;
+        //                        },
+        //                        read: () => {
+        //                            return priceObj.value;
+        //                        },
+        //                        destroy: () => {
+        //                            priceObj.destroy();
+        //                        },
+        //                        write: (args) => {
+        //                            priceObj = new ej.inputs.NumericTextBox({
+        //                                value: args.rowData.unitPrice ?? 0,
+        //                                min: 0,
+        //                                change: (e) => {
+        //                                    if (quantityObj && totalPriceObj) {
+        //                                        const selectedProduct = state.productListLookupData.find(item => item.id === args.rowData.productId);
+        //                                        const vatPercentage = selectedProduct?.vatPercentage || 0;
+        //                                        const taxPercentage = selectedProduct?.taxPercentage || 0;
+        //                                        const vatAmount = e.value * (vatPercentage / 100);
+        //                                        const taxAmount = e.value * (taxPercentage / 100);
+        //                                        const total = (e.value + vatAmount + taxAmount) * quantityObj.value;
+        //                                        totalPriceObj.value = total;
+        //                                    }
+        //                                }
+        //                            });
+        //                            priceObj.appendTo(args.element);
+        //                        }
+        //                    }
+        //                },
+        //                {
+        //                    field: 'quantity',
+        //                    headerText: 'Quantity',
+        //                    width: 200,
+        //                    validationRules: {
+        //                        required: true,
+        //                        custom: [(args) => {
+        //                            return args['value'] > 0;
+        //                        }, 'Must be a positive number and not zero']
+        //                    },
+        //                    type: 'number',
+        //                    format: 'N2',
+        //                    textAlign: 'Right',
+        //                    edit: {
+        //                        create: () => {
+        //                            let quantityElem = document.createElement('input');
+        //                            return quantityElem;
+        //                        },
+        //                        read: () => {
+        //                            return quantityObj.value;
+        //                        },
+        //                        destroy: () => {
+        //                            quantityObj.destroy();
+        //                        },
+        //                        write: (args) => {
+        //                            quantityObj = new ej.inputs.NumericTextBox({
+        //                                value: args.rowData.quantity ?? 0,
+        //                                min: 1,
+        //                                change: (e) => {
+        //                                    if (priceObj && totalPriceObj) {
+        //                                        const selectedProduct = state.productListLookupData.find(item => item.id === args.rowData.productId);
+        //                                        const vatPercentage = selectedProduct?.vatPercentage || 0;
+        //                                        const taxPercentage = selectedProduct?.taxPercentage || 0;
+        //                                        const vatAmount = priceObj.value * (vatPercentage / 100);
+        //                                        const taxAmount = priceObj.value * (taxPercentage / 100);
+        //                                        const total = (priceObj.value + vatAmount + taxAmount) * e.value;
+        //                                        totalPriceObj.value = total;
+        //                                    }
+        //                                }
+        //                            });
+        //                            quantityObj.appendTo(args.element);
+        //                        }
+        //                    }
+        //                },
+        //                {
+        //                    field: 'vatName',
+        //                    headerText: 'VAT',
+        //                    width: 150,
+        //                    allowEditing: false,
+        //                    valueAccessor: (field, data, column) => {
+        //                        const product = state.productListLookupData.find(item => item.id === data['productId']);
+        //                        return product ? product.vatName || 'Not Set' : 'Not Set';
+        //                    }
+        //                },
+        //                {
+        //                    field: 'taxName',
+        //                    headerText: 'Tax',
+        //                    width: 150,
+        //                    allowEditing: false,
+        //                    valueAccessor: (field, data, column) => {
+        //                        const product = state.productListLookupData.find(item => item.id === data['productId']);
+        //                        return product ? product.taxName || 'Not Set' : 'Not Set';
+        //                    }
+        //                },
+        //                {
+        //                    field: 'totalPrice',
+        //                    headerText: 'Total Price',
+        //                    width: 200,
+        //                    type: 'number',
+        //                    format: 'N2',
+        //                    textAlign: 'Right',
+        //                    allowEditing: false,
+        //                    valueAccessor: (field, data, column) => {
+        //                        const product = state.productListLookupData.find(item => item.id === data['productId']);
+        //                        const unitPrice = data['unitPrice'] || (product ? product.unitPrice : 0);
+        //                        const quantity = data['quantity'] || 0;
+        //                        const vatPercentage = product?.vatPercentage || 0;
+        //                        const taxPercentage = product?.taxPercentage || 0;
+        //                        const vatAmount = unitPrice * (vatPercentage / 100);
+        //                        const taxAmount = unitPrice * (taxPercentage / 100);
+        //                        return (unitPrice + vatAmount + taxAmount) * quantity;
+        //                    },
+        //                    edit: {
+        //                        create: () => {
+        //                            let totalPriceElem = document.createElement('input');
+        //                            return totalPriceElem;
+        //                        },
+        //                        read: () => {
+        //                            return totalPriceObj.value;
+        //                        },
+        //                        destroy: () => {
+        //                            totalPriceObj.destroy();
+        //                        },
+        //                        write: (args) => {
+        //                            totalPriceObj = new ej.inputs.NumericTextBox({
+        //                                value: args.rowData.totalPrice ?? 0,
+        //                                readonly: true
+        //                            });
+        //                            totalPriceObj.appendTo(args.element);
+        //                        }
+        //                    }
+        //                },
+        //                {
+        //                    field: 'productNumber',
+        //                    headerText: 'Product Number',
+        //                    allowEditing: false,
+        //                    width: 180,
+        //                    edit: {
+        //                        create: () => {
+        //                            let numberElem = document.createElement('input');
+        //                            return numberElem;
+        //                        },
+        //                        read: () => {
+        //                            return numberObj.value;
+        //                        },
+        //                        destroy: () => {
+        //                            numberObj.destroy();
+        //                        },
+        //                        write: (args) => {
+        //                            numberObj = new ej.inputs.TextBox();
+        //                            numberObj.value = args.rowData.productNumber;
+        //                            numberObj.readonly = true;
+        //                            numberObj.appendTo(args.element);
+        //                        }
+        //                    }
+        //                },
+        //                {
+        //                    field: 'summary',
+        //                    headerText: 'Summary',
+        //                    width: 200,
+        //                    edit: {
+        //                        create: () => {
+        //                            let summaryElem = document.createElement('input');
+        //                            return summaryElem;
+        //                        },
+        //                        read: () => {
+        //                            return summaryObj.value;
+        //                        },
+        //                        destroy: () => {
+        //                            summaryObj.destroy();
+        //                        },
+        //                        write: (args) => {
+        //                            summaryObj = new ej.inputs.TextBox();
+        //                            summaryObj.value = args.rowData.summary;
+        //                            summaryObj.appendTo(args.element);
+        //                        }
+        //                    }
+        //                }
+        //            ],
+        //            toolbar: [
+        //                'ExcelExport',
+        //                { type: 'Separator' },
+        //                'Add', 'Edit', 'Delete', 'Update', 'Cancel',
+        //                'Search' // Add grid-level search
+        //            ],
+        //            beforeDataBound: () => { },
+        //            dataBound: function () { },
+        //            excelExportComplete: () => { },
+        //            rowSelected: () => {
+        //                if (secondaryGrid.obj.getSelectedRecords().length == 1) {
+        //                    secondaryGrid.obj.toolbarModule.enableItems(['Edit'], true);
+        //                } else {
+        //                    secondaryGrid.obj.toolbarModule.enableItems(['Edit'], false);
+        //                }
+        //            },
+        //            rowDeselected: () => {
+        //                if (secondaryGrid.obj.getSelectedRecords().length == 1) {
+        //                    secondaryGrid.obj.toolbarModule.enableItems(['Edit'], true);
+        //                } else {
+        //                    secondaryGrid.obj.toolbarModule.enableItems(['Edit'], false);
+        //                }
+        //            },
+        //            rowSelecting: () => {
+        //                if (secondaryGrid.obj.getSelectedRecords().length) {
+        //                    secondaryGrid.obj.clearSelection();
+        //                }
+        //            },
+        //            toolbarClick: (args) => {
+        //                if (args.item.id === 'SecondaryGrid_excelexport') {
+        //                    secondaryGrid.obj.excelExport();
+        //                }
+        //            },
+        //            actionComplete: async (args) => {
+        //                if (args.requestType === 'save' && args.action === 'add') {
+        //                    const salesOrderId = state.id;
+        //                    const userId = StorageManager.getUserId();
+        //                    const data = args.data;
+
+        //                    await services.createSecondaryData(data?.unitPrice, data?.quantity, data?.summary, data?.productId, salesOrderId, userId);
+        //                    await methods.populateSecondaryData(salesOrderId);
+        //                    secondaryGrid.refresh();
+
+        //                    Swal.fire({
+        //                        icon: 'success',
+        //                        title: 'Save Successful',
+        //                        timer: 2000,
+        //                        showConfirmButton: false
+        //                    });
+        //                }
+        //                if (args.requestType === 'save' && args.action === 'edit') {
+        //                    const salesOrderId = state.id;
+        //                    const userId = StorageManager.getUserId();
+        //                    const data = args.data;
+
+        //                    await services.updateSecondaryData(data?.id, data?.unitPrice, data?.quantity, data?.summary, data?.productId, salesOrderId, userId);
+        //                    await methods.populateSecondaryData(salesOrderId);
+        //                    secondaryGrid.refresh();
+
+        //                    Swal.fire({
+        //                        icon: 'success',
+        //                        title: 'Save Successful',
+        //                        timer: 2000,
+        //                        showConfirmButton: false
+        //                    });
+        //                }
+        //                if (args.requestType === 'delete') {
+        //                    const salesOrderId = state.id;
+        //                    const userId = StorageManager.getUserId();
+        //                    const data = args.data[0];
+
+        //                    await services.deleteSecondaryData(data?.id, userId);
+        //                    await methods.populateSecondaryData(salesOrderId);
+        //                    secondaryGrid.refresh();
+
+        //                    Swal.fire({
+        //                        icon: 'success',
+        //                        title: 'Delete Successful',
+        //                        timer: 2000,
+        //                        showConfirmButton: false
+        //                    });
+        //                }
+
+        //                await methods.populateMainData();
+        //                mainGrid.refresh();
+        //                await methods.refreshPaymentSummary(state.id);
+        //            }
+        //        });
+        //        secondaryGrid.obj.appendTo(secondaryGridRef.value);
+        //    },
+        //    refresh: () => {
+        //        secondaryGrid.obj.setProperties({ dataSource: state.secondaryData });
+        //    }
+        //};
+
         const secondaryGrid = {
             obj: null,
             create: async (dataSource) => {
@@ -694,7 +1109,7 @@
                     height: 400,
                     dataSource: dataSource,
                     editSettings: { allowEditing: true, allowAdding: true, allowDeleting: true, showDeleteConfirmDialog: true, mode: 'Normal', allowEditOnDblClick: true },
-                    allowFiltering: false,
+                    allowFiltering: true,
                     allowSorting: true,
                     allowSelection: true,
                     allowGrouping: false,
@@ -702,12 +1117,12 @@
                     allowResizing: true,
                     allowPaging: false,
                     allowExcelExport: true,
-                    filterSettings: { type: 'CheckBox' },
+                    filterSettings: { type: 'Excel' },
                     sortSettings: { columns: [{ field: 'productName', direction: 'Descending' }] },
                     pageSettings: { currentPage: 1, pageSize: 50, pageSizes: ["10", "20", "50", "100", "200", "All"] },
                     selectionSettings: { persistSelection: true, type: 'Single' },
                     autoFit: false,
-                    showColumnMenu: false,
+                    showColumnMenu: true,
                     gridLines: 'Horizontal',
                     columns: [
                         { type: 'checkbox', width: 60 },
@@ -736,34 +1151,65 @@
                                 destroy: () => {
                                     productObj.destroy();
                                 },
-                                write: (args) => {
+                                write: async (args) => {
                                     productObj = new ej.dropdowns.DropDownList({
                                         dataSource: state.productListLookupData,
                                         fields: { value: 'id', text: 'name' },
                                         value: args.rowData.productId,
                                         placeholder: 'Select a Product',
-                                        filterBarPlaceholder: 'Search',
+                                        filterBarPlaceholder: 'Search by Name or Barcode',
                                         allowFiltering: true,
-                                        filtering: (e) => {
+                                        filtering: async (e) => {
                                             e.preventDefaultAction = true;
                                             let query = new ej.data.Query();
-                                            if (e.text !== '') {
-                                                query = query.where('name', 'startsWith', e.text, true);
+                                            if (e.text && e.text.trim() !== '') {
+                                                const searchText = e.text.toLowerCase();
+                                                let namePredicate = new ej.data.Predicate('name', 'contains', searchText, true);
+                                                let barcodePredicate = new ej.data.Predicate('barcode', 'contains', searchText, true);
+                                                query = query.where(namePredicate.or(barcodePredicate));
+
+                                                // Filter local data first
+                                                let filteredData = state.productListLookupData.filter(item =>
+                                                    item.name.toLowerCase().includes(searchText) ||
+                                                    (item.barcode && item.barcode.toLowerCase().includes(searchText))
+                                                );
+
+                                                if (filteredData.length === 0) {
+                                                    // If not found locally, search via API
+                                                    try {
+                                                        const response = await services.getProductByBarcode(searchText);
+                                                        if (response.data.code === 200 && response.data.content.data) {
+                                                            const product = response.data.content.data;
+                                                            const existingProduct = state.productListLookupData.find(p => p.id === product.id);
+                                                            if (!existingProduct) {
+                                                                state.productListLookupData.push(product);
+                                                                filteredData.push(product);
+                                                            }
+                                                        }
+                                                    } catch (error) {
+                                                        console.error('API search error:', error);
+                                                    }
+                                                }
+                                                e.updateData(filteredData, query);
+                                            } else {
+                                                e.updateData(state.productListLookupData, query);
                                             }
-                                            e.updateData(state.productListLookupData, query);
                                         },
-                                        change: (e) => {
+                                        change: async (e) => {
                                             const selectedProduct = state.productListLookupData.find(item => item.id === e.value);
                                             if (selectedProduct) {
                                                 args.rowData.productId = selectedProduct.id;
+                                                if (barcodeObj) {
+                                                    barcodeObj.value = selectedProduct.barcode || '';
+                                                }
                                                 if (numberObj) {
                                                     numberObj.value = selectedProduct.number;
                                                 }
                                                 if (priceObj) {
-                                                    priceObj.value = selectedProduct.unitPrice;
+                                                    priceObj.value = selectedProduct.unitPrice || 0;
                                                 }
                                                 if (summaryObj) {
-                                                    summaryObj.value = selectedProduct.description;
+                                                    summaryObj.value = selectedProduct.description || '';
                                                 }
                                                 if (quantityObj) {
                                                     quantityObj.value = 1;
@@ -777,6 +1223,27 @@
                                                         totalPriceObj.value = total;
                                                     }
                                                 }
+                                                // Save the new item to the grid
+                                                const salesOrderId = state.id;
+                                                const userId = StorageManager.getUserId();
+                                                await services.createSecondaryData(
+                                                    selectedProduct.unitPrice || 0,
+                                                    1,
+                                                    selectedProduct.description || '',
+                                                    selectedProduct.id,
+                                                    salesOrderId,
+                                                    userId
+                                                );
+                                                await methods.populateSecondaryData(salesOrderId);
+                                                secondaryGrid.refresh();
+
+                                                Swal.fire({
+                                                    icon: 'success',
+                                                    title: 'Product Added',
+                                                    text: `Added ${selectedProduct.name} via selection`,
+                                                    timer: 1000,
+                                                    showConfirmButton: false
+                                                });
                                             }
                                         },
                                         floatLabelType: 'Never'
@@ -806,10 +1273,10 @@
                                     barcodeObj.destroy();
                                 },
                                 write: (args) => {
-                                    barcodeObj = new ej.inputs.TextBox();
-                                    const product = state.productListLookupData.find(item => item.id === args.rowData.productId);
-                                    barcodeObj.value = product ? (product.barcode || '') : '';
-                                    barcodeObj.readonly = true;
+                                    barcodeObj = new ej.inputs.TextBox({
+                                        value: args.rowData.barcode || '',
+                                        readonly: true
+                                    });
                                     barcodeObj.appendTo(args.element);
                                 }
                             }
@@ -817,7 +1284,11 @@
                         {
                             field: 'unitPrice',
                             headerText: 'Unit Price',
-                            width: 200, validationRules: { required: true }, type: 'number', format: 'N2', textAlign: 'Right',
+                            width: 200,
+                            validationRules: { required: true, min: 0 },
+                            type: 'number',
+                            format: 'N2',
+                            textAlign: 'Right',
                             edit: {
                                 create: () => {
                                     let priceElem = document.createElement('input');
@@ -832,6 +1303,7 @@
                                 write: (args) => {
                                     priceObj = new ej.inputs.NumericTextBox({
                                         value: args.rowData.unitPrice ?? 0,
+                                        min: 0,
                                         change: (e) => {
                                             if (quantityObj && totalPriceObj) {
                                                 const selectedProduct = state.productListLookupData.find(item => item.id === args.rowData.productId);
@@ -858,7 +1330,9 @@
                                     return args['value'] > 0;
                                 }, 'Must be a positive number and not zero']
                             },
-                            type: 'number', format: 'N2', textAlign: 'Right',
+                            type: 'number',
+                            format: 'N2',
+                            textAlign: 'Right',
                             edit: {
                                 create: () => {
                                     let quantityElem = document.createElement('input');
@@ -873,6 +1347,7 @@
                                 write: (args) => {
                                     quantityObj = new ej.inputs.NumericTextBox({
                                         value: args.rowData.quantity ?? 0,
+                                        min: 1,
                                         change: (e) => {
                                             if (priceObj && totalPriceObj) {
                                                 const selectedProduct = state.productListLookupData.find(item => item.id === args.rowData.productId);
@@ -998,6 +1473,7 @@
                         'ExcelExport',
                         { type: 'Separator' },
                         'Add', 'Edit', 'Delete', 'Update', 'Cancel',
+                        'Search'
                     ],
                     beforeDataBound: () => { },
                     dataBound: function () { },
@@ -1087,7 +1563,6 @@
                 secondaryGrid.obj.setProperties({ dataSource: state.secondaryData });
             }
         };
-
         const mainModal = {
             obj: null,
             create: () => {

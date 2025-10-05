@@ -75,7 +75,50 @@ public class ProductController : BaseApiController
         });
     }
 
+    [Authorize]
+    [HttpGet("GetProductByBarcode")]
+    public async Task<ActionResult<ApiSuccessResult<GetProductByBarcodeResult>>> GetProductByBarcodeAsync(
+     CancellationToken cancellationToken,
+     [FromQuery] string barcode,
+     [FromQuery] bool isDeleted = false)
+    {
+        if (string.IsNullOrWhiteSpace(barcode))
+        {
+            return Ok(new ApiSuccessResult<GetProductByBarcodeResult>
+            {
+                Code = StatusCodes.Status400BadRequest,
+                Message = "Barcode is required",
+                Content = new GetProductByBarcodeResult { Data = null }
+            });
+        }
 
+        var request = new GetProductByBarcodeRequest
+        {
+            Barcode = barcode,
+            IsDeleted = isDeleted
+        };
+
+        var response = await _sender.Send(request, cancellationToken);
+
+        if (response.Data == null)
+        {
+            return Ok(new ApiSuccessResult<GetProductByBarcodeResult>
+            {
+                Code = StatusCodes.Status404NotFound,
+                Message = $"Product with barcode '{barcode}' not found",
+                Content = response
+            });
+        }
+
+        return Ok(new ApiSuccessResult<GetProductByBarcodeResult>
+        {
+            Code = StatusCodes.Status200OK,
+            Message = $"Success executing {nameof(GetProductByBarcodeAsync)}",
+            Content = response
+        });
+    }
 }
+
+
 
 
