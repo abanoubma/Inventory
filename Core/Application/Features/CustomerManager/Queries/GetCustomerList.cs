@@ -19,7 +19,7 @@ public record GetCustomerListDto
     public string? ZipCode { get; set; }
     public string? Country { get; set; }
     public string? PhoneNumber { get; set; }
-    public string? FaxNumber { get; set; }
+    public string? TaxRegistrationNumber { get; set; }
     public string? EmailAddress { get; set; }
     public string? Website { get; set; }
     public string? WhatsApp { get; set; }

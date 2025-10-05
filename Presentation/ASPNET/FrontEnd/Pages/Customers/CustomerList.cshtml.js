@@ -20,7 +20,7 @@
             zipCode: '',
             country: '',
             phoneNumber: '',
-            faxNumber: '',
+            taxRegistrationNumber: '', // Changed from faxNumber
             emailAddress: '',
             website: '',
             whatsApp: '',
@@ -44,6 +44,7 @@
             isSubmitting: false
         });
 
+        // Define all refs at the top level of setup function
         const mainGridRef = Vue.ref(null);
         const mainModalRef = Vue.ref(null);
         const manageContactModalRef = Vue.ref(null);
@@ -56,7 +57,7 @@
         const zipCodeRef = Vue.ref(null);
         const countryRef = Vue.ref(null);
         const phoneNumberRef = Vue.ref(null);
-        const faxNumberRef = Vue.ref(null);
+        const taxRegistrationNumberRef = Vue.ref(null); // Changed from faxNumberRef
         const emailAddressRef = Vue.ref(null);
         const websiteRef = Vue.ref(null);
         const whatsAppRef = Vue.ref(null);
@@ -68,6 +69,68 @@
         const customerGroupIdRef = Vue.ref(null);
         const customerCategoryIdRef = Vue.ref(null);
 
+        const validateForm = function () {
+            state.errors.name = '';
+            state.errors.customerGroupId = '';
+            state.errors.customerCategoryId = '';
+            state.errors.street = '';
+            state.errors.city = '';
+            state.errors.state = '';
+            state.errors.zipCode = '';
+            state.errors.country = '';
+            state.errors.phoneNumber = '';
+            state.errors.emailAddress = '';
+
+            let isValid = true;
+
+            if (!state.name) {
+                state.errors.name = 'Name is required.';
+                isValid = false;
+            }
+            if (!state.phoneNumber) {
+                state.errors.phoneNumber = 'Phone Number is required.';
+                isValid = false;
+            }
+
+            return isValid;
+        };
+
+        const resetFormState = () => {
+            state.id = '';
+            state.number = '';
+            state.name = '';
+            state.customerGroupId = null;
+            state.customerCategoryId = null;
+            state.description = '';
+            state.street = '';
+            state.city = '';
+            state.state = '';
+            state.zipCode = '';
+            state.country = '';
+            state.phoneNumber = '';
+            state.taxRegistrationNumber = ''; // Changed from faxNumber
+            state.emailAddress = '';
+            state.website = '';
+            state.whatsApp = '';
+            state.linkedIn = '';
+            state.facebook = '';
+            state.instagram = '';
+            state.twitterX = '';
+            state.tikTok = '';
+            state.errors = {
+                name: '',
+                customerGroupId: '',
+                customerCategoryId: '',
+                street: '',
+                city: '',
+                state: '',
+                zipCode: '',
+                country: '',
+                phoneNumber: '',
+                emailAddress: '',
+            };
+        };
+
         const services = {
             getMainData: async () => {
                 try {
@@ -77,52 +140,59 @@
                     throw error;
                 }
             },
-            createMainData: async (name, customerGroupId, customerCategoryId, description, street, city, state, zipCode, country, phoneNumber, faxNumber, emailAddress, website, whatsApp, linkedIn, facebook, instagram, twitterX, tikTok, createdById) => {
+            createMainData: async (name, description, phoneNumber, taxRegistrationNumber, createdById) => {
                 try {
                     const response = await AxiosManager.post('/Customer/CreateCustomer', {
-                        name, customerGroupId, customerCategoryId, description, street, city, state, zipCode, country, phoneNumber, faxNumber, emailAddress, website, whatsApp, linkedIn, facebook, instagram, twitterX, tikTok, createdById
+                        name,
+                        description,
+                        phoneNumber,
+                        taxRegistrationNumber,
+                        createdById
                     });
                     return response;
                 } catch (error) {
                     throw error;
                 }
             },
-            updateMainData: async (id, name, customerGroupId, customerCategoryId, description, street, city, state, zipCode, country, phoneNumber, faxNumber, emailAddress, website, whatsApp, linkedIn, facebook, instagram, twitterX, tikTok, updatedById) => {
+            updateMainData: async (id, name, description, phoneNumber, taxRegistrationNumber, updatedById) => {
                 try {
-                    const response = await AxiosManager.post('/Customer/UpdateCustomer', {
-                        id, name, customerGroupId, customerCategoryId, description, street, city, state, zipCode, country, phoneNumber, faxNumber, emailAddress, website, whatsApp, linkedIn, facebook, instagram, twitterX, tikTok, updatedById
+                    console.log('Update Customer Data:', {
+                        id,
+                        name,
+                        description,
+                        phoneNumber,
+                        taxRegistrationNumber,
+                        updatedById
                     });
+
+                    const response = await AxiosManager.post('/Customer/UpdateCustomer', {
+                        id,
+                        name,
+                        description,
+                        phoneNumber,
+                        taxRegistrationNumber,
+                        updatedById
+                    });
+
+                    console.log('Update Response:', response.data);
                     return response;
                 } catch (error) {
+                    console.error('Update Customer Error:', error);
                     throw error;
                 }
             },
             deleteMainData: async (id, deletedById) => {
                 try {
                     const response = await AxiosManager.post('/Customer/DeleteCustomer', {
-                        id, deletedById
+                        id,
+                        deletedById
                     });
                     return response;
                 } catch (error) {
                     throw error;
                 }
             },
-            //getCustomerGroupListLookupData: async () => {
-            //    try {
-            //        const response = await AxiosManager.get('/CustomerGroup/GetCustomerGroupList', {});
-            //        return response;
-            //    } catch (error) {
-            //        throw error;
-            //    }
-            //},
-            //getCustomerCategoryListLookupData: async () => {
-            //    try {
-            //        const response = await AxiosManager.get('/CustomerCategory/GetCustomerCategoryList', {});
-            //        return response;
-            //    } catch (error) {
-            //        throw error;
-            //    }
-            //},
+
             getSecondaryData: async (customerId) => {
                 try {
                     const response = await AxiosManager.get('/CustomerContact/GetCustomerContactByCustomerIdList?customerId=' + customerId, {});
@@ -164,14 +234,6 @@
         };
 
         const methods = {
-            //populateCustomerGroupListLookupData: async () => {
-            //    const response = await services.getCustomerGroupListLookupData();
-            //    state.customerGroupListLookupData = response?.data?.content?.data;
-            //},
-            //populateCustomerCategoryListLookupData: async () => {
-            //    const response = await services.getCustomerCategoryListLookupData();
-            //    state.customerCategoryListLookupData = response?.data?.content?.data;
-            //},
             populateMainData: async () => {
                 const response = await services.getMainData();
                 state.mainData = response?.data?.content?.data.map(item => ({
@@ -188,54 +250,7 @@
             },
         };
 
-        const customerGroupListLookup = {
-            obj: null,
-            create: () => {
-                if (state.customerGroupListLookupData && Array.isArray(state.customerGroupListLookupData)) {
-                    customerGroupListLookup.obj = new ej.dropdowns.DropDownList({
-                        dataSource: state.customerGroupListLookupData,
-                        fields: { value: 'id', text: 'name' },
-                        placeholder: 'Select a Customer Group',
-                        change: (e) => {
-                            state.customerGroupId = e.value;
-                        }
-                    });
-                    customerGroupListLookup.obj.appendTo(customerGroupIdRef.value);
-                } else {
-                    console.error('Customer Group list lookup data is not available or invalid.');
-                }
-            },
-            refresh: () => {
-                if (customerGroupListLookup.obj) {
-                    customerGroupListLookup.obj.value = state.customerGroupId;
-                }
-            },
-        };
-
-        const customerCategoryListLookup = {
-            obj: null,
-            create: () => {
-                if (state.customerCategoryListLookupData && Array.isArray(state.customerCategoryListLookupData)) {
-                    customerCategoryListLookup.obj = new ej.dropdowns.DropDownList({
-                        dataSource: state.customerCategoryListLookupData,
-                        fields: { value: 'id', text: 'name' },
-                        placeholder: 'Select a Customer Category',
-                        change: (e) => {
-                            state.customerCategoryId = e.value;
-                        }
-                    });
-                    customerCategoryListLookup.obj.appendTo(customerCategoryIdRef.value);
-                } else {
-                    console.error('Customer Category list lookup data is not available or invalid.');
-                }
-            },
-            refresh: () => {
-                if (customerCategoryListLookup.obj) {
-                    customerCategoryListLookup.obj.value = state.customerCategoryId;
-                }
-            },
-        };
-
+        // Text box definitions
         const nameText = {
             obj: null,
             create: () => {
@@ -267,81 +282,6 @@
             }
         };
 
-        const streetText = {
-            obj: null,
-            create: () => {
-                streetText.obj = new ej.inputs.TextBox({
-                    placeholder: 'Enter Street',
-                });
-                streetText.obj.appendTo(streetRef.value);
-            },
-            refresh: () => {
-                if (streetText.obj) {
-                    streetText.obj.value = state.street;
-                }
-            }
-        };
-
-        const cityText = {
-            obj: null,
-            create: () => {
-                cityText.obj = new ej.inputs.TextBox({
-                    placeholder: 'Enter City',
-                });
-                cityText.obj.appendTo(cityRef.value);
-            },
-            refresh: () => {
-                if (cityText.obj) {
-                    cityText.obj.value = state.city;
-                }
-            }
-        };
-
-        const stateText = {
-            obj: null,
-            create: () => {
-                stateText.obj = new ej.inputs.TextBox({
-                    placeholder: 'Enter State',
-                });
-                stateText.obj.appendTo(stateRef.value);
-            },
-            refresh: () => {
-                if (stateText.obj) {
-                    stateText.obj.value = state.state;
-                }
-            }
-        };
-
-        const zipCodeText = {
-            obj: null,
-            create: () => {
-                zipCodeText.obj = new ej.inputs.TextBox({
-                    placeholder: 'Enter Zip Code',
-                });
-                zipCodeText.obj.appendTo(zipCodeRef.value);
-            },
-            refresh: () => {
-                if (zipCodeText.obj) {
-                    zipCodeText.obj.value = state.zipCode;
-                }
-            }
-        };
-
-        const countryText = {
-            obj: null,
-            create: () => {
-                countryText.obj = new ej.inputs.TextBox({
-                    placeholder: 'Enter Country',
-                });
-                countryText.obj.appendTo(countryRef.value);
-            },
-            refresh: () => {
-                if (countryText.obj) {
-                    countryText.obj.value = state.country;
-                }
-            }
-        };
-
         const phoneNumberText = {
             obj: null,
             create: () => {
@@ -357,209 +297,27 @@
             }
         };
 
-        const faxNumberText = {
+        const taxRegistrationNumberText = {
             obj: null,
             create: () => {
-                faxNumberText.obj = new ej.inputs.TextBox({
-                    placeholder: 'Enter Fax Number',
+                taxRegistrationNumberText.obj = new ej.inputs.TextBox({
+                    placeholder: 'Enter Tax Registration Number',
                 });
-                faxNumberText.obj.appendTo(faxNumberRef.value);
+                taxRegistrationNumberText.obj.appendTo(taxRegistrationNumberRef.value);
             },
             refresh: () => {
-                if (faxNumberText.obj) {
-                    faxNumberText.obj.value = state.faxNumber;
+                if (taxRegistrationNumberText.obj) {
+                    taxRegistrationNumberText.obj.value = state.taxRegistrationNumber;
                 }
             }
         };
 
-        const emailAddressText = {
-            obj: null,
-            create: () => {
-                emailAddressText.obj = new ej.inputs.TextBox({
-                    placeholder: 'Enter Email Address',
-                });
-                emailAddressText.obj.appendTo(emailAddressRef.value);
-            },
-            refresh: () => {
-                if (emailAddressText.obj) {
-                    emailAddressText.obj.value = state.emailAddress;
-                }
-            }
-        };
-
-        const websiteText = {
-            obj: null,
-            create: () => {
-                websiteText.obj = new ej.inputs.TextBox({
-                    placeholder: 'Enter Website',
-                });
-                websiteText.obj.appendTo(websiteRef.value);
-            },
-            refresh: () => {
-                if (websiteText.obj) {
-                    websiteText.obj.value = state.website;
-                }
-            }
-        };
-
-        const whatsAppText = {
-            obj: null,
-            create: () => {
-                whatsAppText.obj = new ej.inputs.TextBox({
-                    placeholder: 'Enter WhatsApp',
-                });
-                whatsAppText.obj.appendTo(whatsAppRef.value);
-            },
-            refresh: () => {
-                if (whatsAppText.obj) {
-                    whatsAppText.obj.value = state.whatsApp;
-                }
-            }
-        };
-
-        const linkedInText = {
-            obj: null,
-            create: () => {
-                linkedInText.obj = new ej.inputs.TextBox({
-                    placeholder: 'Enter LinkedIn',
-                });
-                linkedInText.obj.appendTo(linkedInRef.value);
-            },
-            refresh: () => {
-                if (linkedInText.obj) {
-                    linkedInText.obj.value = state.linkedIn;
-                }
-            }
-        };
-
-        const facebookText = {
-            obj: null,
-            create: () => {
-                facebookText.obj = new ej.inputs.TextBox({
-                    placeholder: 'Enter Facebook',
-                });
-                facebookText.obj.appendTo(facebookRef.value);
-            },
-            refresh: () => {
-                if (facebookText.obj) {
-                    facebookText.obj.value = state.facebook;
-                }
-            }
-        };
-
-        const instagramText = {
-            obj: null,
-            create: () => {
-                instagramText.obj = new ej.inputs.TextBox({
-                    placeholder: 'Enter Instagram',
-                });
-                instagramText.obj.appendTo(instagramRef.value);
-            },
-            refresh: () => {
-                if (instagramText.obj) {
-                    instagramText.obj.value = state.instagram;
-                }
-            }
-        };
-
-        const twitterXText = {
-            obj: null,
-            create: () => {
-                twitterXText.obj = new ej.inputs.TextBox({
-                    placeholder: 'Enter Twitter/X',
-                });
-                twitterXText.obj.appendTo(twitterXRef.value);
-            },
-            refresh: () => {
-                if (twitterXText.obj) {
-                    twitterXText.obj.value = state.twitterX;
-                }
-            }
-        };
-
-        const tikTokText = {
-            obj: null,
-            create: () => {
-                tikTokText.obj = new ej.inputs.TextBox({
-                    placeholder: 'Enter TikTok',
-                });
-                tikTokText.obj.appendTo(tikTokRef.value);
-            },
-            refresh: () => {
-                if (tikTokText.obj) {
-                    tikTokText.obj.value = state.tikTok;
-                }
-            }
-        };
-
+        // Watchers
         Vue.watch(
             () => state.name,
             (newVal, oldVal) => {
                 state.errors.name = '';
                 nameText.refresh();
-            }
-        );
-
-        Vue.watch(
-            () => state.number,
-            (newVal, oldVal) => {
-                numberText.refresh();
-            }
-        );
-
-        Vue.watch(
-            () => state.customerGroupId,
-            (newVal, oldVal) => {
-                state.errors.customerGroupId = '';
-                customerGroupListLookup.refresh();
-            }
-        );
-
-        Vue.watch(
-            () => state.customerCategoryId,
-            (newVal, oldVal) => {
-                state.errors.customerCategoryId = '';
-                customerCategoryListLookup.refresh();
-            }
-        );
-
-        Vue.watch(
-            () => state.street,
-            (newVal, oldVal) => {
-                state.errors.street = '';
-                streetText.refresh();
-            }
-        );
-
-        Vue.watch(
-            () => state.city,
-            (newVal, oldVal) => {
-                state.errors.city = '';
-                cityText.refresh();
-            }
-        );
-
-        Vue.watch(
-            () => state.state,
-            (newVal, oldVal) => {
-                state.errors.state = '';
-                stateText.refresh();
-            }
-        );
-
-        Vue.watch(
-            () => state.zipCode,
-            (newVal, oldVal) => {
-                state.errors.zipCode = '';
-                zipCodeText.refresh();
-            }
-        );
-
-        Vue.watch(
-            () => state.country,
-            (newVal, oldVal) => {
-                state.errors.country = '';
-                countryText.refresh();
             }
         );
 
@@ -572,10 +330,9 @@
         );
 
         Vue.watch(
-            () => state.emailAddress,
+            () => state.taxRegistrationNumber,
             (newVal, oldVal) => {
-                state.errors.emailAddress = '';
-                emailAddressText.refresh();
+                taxRegistrationNumberText.refresh();
             }
         );
 
@@ -585,96 +342,50 @@
                     state.isSubmitting = true;
                     await new Promise(resolve => setTimeout(resolve, 200));
 
-                    let isValid = true;
-
-                    if (!state.name) {
-                        state.errors.name = 'Name is required.';
-                        isValid = false;
+                    if (!validateForm()) {
+                        state.isSubmitting = false;
+                        return;
                     }
-                    //if (!state.customerGroupId) {
-                    //    state.errors.customerGroupId = 'Customer Group is required.';
-                    //    isValid = false;
-                    //}
-                    //if (!state.customerCategoryId) {
-                    //    state.errors.customerCategoryId = 'Customer Category is required.';
-                    //    isValid = false;
-                    //}
-                    //if (!state.street) {
-                    //    state.errors.street = 'Street is required.';
-                    //    isValid = false;
-                    //}
-                    //if (!state.city) {
-                    //    state.errors.city = 'City is required.';
-                    //    isValid = false;
-                    //}
-                    //if (!state.state) {
-                    //    state.errors.state = 'State is required.';
-                    //    isValid = false;
-                    //}
-                    //if (!state.zipCode) {
-                    //    state.errors.zipCode = 'Zip Code is required.';
-                    //    isValid = false;
-                    //}
-                    //if (!state.country) {
-                    //    state.errors.country = 'Country is required.';
-                    //    isValid = false;
-                    //}
-                    //if (!state.phoneNumber) {
-                    //    state.errors.phoneNumber = 'Phone Number is required.';
-                    //    isValid = false;
-                    //}
-                    //if (!state.emailAddress) {
-                    //    state.errors.emailAddress = 'Email Address is required.';
-                    //    isValid = false;
-                    //}
-
-                    if (!isValid) return;
 
                     const response = state.id === ''
-                        ? await services.createMainData(state.name, state.customerGroupId, state.customerCategoryId, state.description, state.street, state.city, state.state, state.zipCode, state.country, state.phoneNumber, state.faxNumber, state.emailAddress, state.website, state.whatsApp, state.linkedIn, state.facebook, state.instagram, state.twitterX, state.tikTok, StorageManager.getUserId())
+                        ? await services.createMainData(
+                            state.name,
+                            state.description,
+                            state.phoneNumber,
+                            state.taxRegistrationNumber,
+                            StorageManager.getUserId()
+                        )
                         : state.deleteMode
                             ? await services.deleteMainData(state.id, StorageManager.getUserId())
-                            : await services.updateMainData(state.id, state.name, state.customerGroupId, state.customerCategoryId, state.description, state.street, state.city, state.state, state.zipCode, state.country, state.phoneNumber, state.faxNumber, state.emailAddress, state.website, state.whatsApp, state.linkedIn, state.facebook, state.instagram, state.twitterX, state.tikTok, StorageManager.getUserId());
+                            : await services.updateMainData(
+                                state.id,
+                                state.name,
+                                state.description,
+                                state.phoneNumber,
+                                state.taxRegistrationNumber,
+                                StorageManager.getUserId()
+                            );
 
                     if (response.data.code === 200) {
                         await methods.populateMainData();
                         mainGrid.refresh();
 
                         if (!state.deleteMode) {
-                            state.mainTitle = 'Edit Customer';
-                            state.id = response?.data?.content?.data.id ?? '';
-                            state.number = response?.data?.content?.data.number ?? '';
-                            state.name = response?.data?.content?.data.name ?? '';
-                            //state.customerGroupId = response?.data?.content?.data.customerGroupId ?? null;
-                            //state.customerCategoryId = response?.data?.content?.data.customerCategoryId ?? null;
-                            state.description = response?.data?.content?.data.description ?? '';
-                            //state.street = response?.data?.content?.data.street ?? '';
-                            //state.city = response?.data?.content?.data.city ?? '';
-                            //state.state = response?.data?.content?.data.state ?? '';
-                            //state.zipCode = response?.data?.content?.data.zipCode ?? '';
-                            //state.country = response?.data?.content?.data.country ?? '';
-                            state.phoneNumber = response?.data?.content?.data.phoneNumber ?? '';
-                            state.faxNumber = response?.data?.content?.data.faxNumber ?? '';
-                            //state.emailAddress = response?.data?.content?.data.emailAddress ?? '';
-                            //state.website = response?.data?.content?.data.website ?? '';
-                            //state.whatsApp = response?.data?.content?.data.whatsApp ?? '';
-                            //state.linkedIn = response?.data?.content?.data.linkedIn ?? '';
-                            //state.facebook = response?.data?.content?.data.facebook ?? '';
-                            //state.instagram = response?.data?.content?.data.instagram ?? '';
-                            //state.twitterX = response?.data?.content?.data.twitterX ?? '';
-                            //state.tikTok = response?.data?.content?.data.tikTok ?? '';
+                            // Update the state from response data
+                            const responseData = response?.data?.content?.data;
+                            state.id = responseData?.id ?? '';
+                            state.number = responseData?.number ?? '';
+                            state.name = responseData?.name ?? '';
+                            state.description = responseData?.description ?? '';
+                            state.phoneNumber = responseData?.phoneNumber ?? '';
+                            state.taxRegistrationNumber = responseData?.taxRegistrationNumber ?? '';
 
                             Swal.fire({
                                 icon: 'success',
-                                title: state.deleteMode ? 'Delete Successful' : 'Save Successful',
-                                text: 'Form will be closed...',
-                                timer: 2000,
+                                title: 'Save Successful',
+                                timer: 1000,
                                 showConfirmButton: false
                             });
-                            setTimeout(() => {
-                                mainModal.obj.hide();
-                            }, 2000);
-
                         } else {
                             Swal.fire({
                                 icon: 'success',
@@ -699,6 +410,7 @@
                     }
 
                 } catch (error) {
+                    console.error('Form submission error:', error);
                     Swal.fire({
                         icon: 'error',
                         title: 'An Error Occurred',
@@ -711,42 +423,6 @@
             },
         };
 
-        const resetFormState = () => {
-            state.id = '';
-            state.number = '';
-            state.name = '';
-            //state.customerGroupId = null;
-            //state.customerCategoryId = null;
-            state.description = '';
-            //state.street = '';
-            //state.city = '';
-            //state.state = '';
-            //state.zipCode = '';
-            //state.country = '';
-            state.phoneNumber = '';
-            state.faxNumber = '';
-            //state.emailAddress = '';
-            //state.website = '';
-            //state.whatsApp = '';
-            //state.linkedIn = '';
-            //state.facebook = '';
-            //state.instagram = '';
-            //state.twitterX = '';
-            //state.tikTok = '';
-            state.errors = {
-                name: '',
-                //customerGroupId: '',
-                //customerCategoryId: '',
-                //street: '',
-                //city: '',
-                //state: '',
-                //zipCode: '',
-                //country: '',
-                phoneNumber: '',
-                //emailAddress: '',
-            };
-        };
-
         const mainGrid = {
             obj: null,
             create: async (dataSource) => {
@@ -757,7 +433,6 @@
                     allowSorting: true,
                     allowSelection: true,
                     allowGrouping: true,
-                  //  groupSettings: { columns: ['customerCategoryName'] },
                     allowTextWrap: true,
                     allowResizing: true,
                     allowPaging: true,
@@ -776,11 +451,8 @@
                         },
                         { field: 'number', headerText: 'Number', width: 150, minWidth: 150 },
                         { field: 'name', headerText: 'Name', width: 200, minWidth: 200 },
-                        //{ field: 'customerGroupName', headerText: 'Group', width: 200, minWidth: 200 },
-                        //{ field: 'customerCategoryName', headerText: 'Category', width: 200, minWidth: 200 },
-                        //{ field: 'street', headerText: 'Street', width: 200, minWidth: 200 },
                         { field: 'phoneNumber', headerText: 'Phone', width: 200, minWidth: 200 },
-                        //{ field: 'emailAddress', headerText: 'Email', width: 200, minWidth: 200 },
+                        { field: 'taxRegistrationNumber', headerText: 'Tax Reg. No.', width: 200, minWidth: 200 },
                         { field: 'createdAtUtc', headerText: 'Created At UTC', width: 150, format: 'yyyy-MM-dd HH:mm' }
                     ],
                     toolbar: [
@@ -795,7 +467,7 @@
                     beforeDataBound: () => { },
                     dataBound: function () {
                         mainGrid.obj.toolbarModule.enableItems(['EditCustom', 'DeleteCustom', 'ManageContactCustom'], false);
-                        mainGrid.obj.autoFitColumns(['name',  'phoneNumber', 'createdAtUtc']);
+                        mainGrid.obj.autoFitColumns(['name', 'phoneNumber', 'taxRegistrationNumber', 'createdAtUtc']);
                     },
                     excelExportComplete: () => { },
                     rowSelected: () => {
@@ -837,24 +509,9 @@
                                 state.id = selectedRecord.id ?? '';
                                 state.number = selectedRecord.number ?? '';
                                 state.name = selectedRecord.name ?? '';
-                                //state.customerGroupId = selectedRecord.customerGroupId ?? null;
-                                //state.customerCategoryId = selectedRecord.customerCategoryId ?? null;
                                 state.description = selectedRecord.description ?? '';
-                                //state.street = selectedRecord.street ?? '';
-                                //state.city = selectedRecord.city ?? '';
-                                //state.state = selectedRecord.state ?? '';
-                                //state.zipCode = selectedRecord.zipCode ?? '';
-                                //state.country = selectedRecord.country ?? '';
                                 state.phoneNumber = selectedRecord.phoneNumber ?? '';
-                                state.faxNumber = selectedRecord.faxNumber ?? '';
-                                //state.emailAddress = selectedRecord.emailAddress ?? '';
-                                //state.website = selectedRecord.website ?? '';
-                                //state.whatsApp = selectedRecord.whatsApp ?? '';
-                                //state.linkedIn = selectedRecord.linkedIn ?? '';
-                                //state.facebook = selectedRecord.facebook ?? '';
-                                //state.instagram = selectedRecord.instagram ?? '';
-                                //state.twitterX = selectedRecord.twitterX ?? '';
-                                //state.tikTok = selectedRecord.tikTok ?? '';
+                                state.taxRegistrationNumber = selectedRecord.taxRegistrationNumber ?? '';
                                 mainModal.obj.show();
                             }
                         }
@@ -881,6 +538,7 @@
                         }
                     }
                 });
+
                 mainGrid.obj.appendTo(mainGridRef.value);
             },
             refresh: () => {
@@ -908,118 +566,6 @@
             }
         };
 
-        const secondaryGrid = {
-            obj: null,
-            create: async (dataSource) => {
-                secondaryGrid.obj = new ej.grids.Grid({
-                    height: '240px',
-                    dataSource: dataSource,
-                    allowFiltering: true,
-                    allowSorting: true,
-                    allowSelection: true,
-                    allowGrouping: false,
-                    allowTextWrap: true,
-                    allowResizing: true,
-                    allowPaging: true,
-                    allowExcelExport: true,
-                    editSettings: { allowEditing: true, allowAdding: true, allowDeleting: true, showDeleteConfirmDialog: true, mode: 'Normal', allowEditOnDblClick: true },
-                    filterSettings: { type: 'CheckBox' },
-                    sortSettings: { columns: [{ field: 'createdAtUtc', direction: 'Descending' }] },
-                    pageSettings: { currentPage: 1, pageSize: 50, pageSizes: ["10", "20", "50", "100", "200", "All"] },
-                    selectionSettings: { persistSelection: true, type: 'Single' },
-                    autoFit: true,
-                    showColumnMenu: true,
-                    gridLines: 'Horizontal',
-                    columns: [
-                        { type: 'checkbox', width: 60 },
-                        {
-                            field: 'id', isPrimaryKey: true, headerText: 'Id', visible: false
-                        },
-                        { field: 'name', headerText: 'Name', width: 200, minWidth: 200, validationRules: { required: true } },
-                        //{ field: 'jobTitle', headerText: 'Job Title', width: 200, minWidth: 200, validationRules: { required: true } },
-                        { field: 'phoneNumber', headerText: 'Phone', width: 200, minWidth: 200, validationRules: { required: true } },
-                        //{ field: 'emailAddress', headerText: 'Email', width: 200, minWidth: 200, validationRules: { required: true } },
-                        { field: 'description', headerText: 'Description', width: 400, minWidth: 400 },
-                        { field: 'createdAtUtc', headerText: 'Created At UTC', width: 150, format: 'yyyy-MM-dd HH:mm' }
-                    ],
-                    toolbar: [
-                        'ExcelExport', 'Add', 'Edit', 'Delete', 'Update', 'Cancel', 'Search'
-                    ],
-                    beforeDataBound: () => { },
-                    dataBound: function () {
-                        secondaryGrid.obj.toolbarModule.enableItems(['Edit', 'Delete'], false);
-                        secondaryGrid.obj.autoFitColumns(['name', 'phoneNumber', 'description', 'createdAtUtc']);
-                    },
-                    excelExportComplete: () => { },
-                    rowSelected: () => {
-                        if (secondaryGrid.obj.getSelectedRecords().length == 1) {
-                            secondaryGrid.obj.toolbarModule.enableItems(['Edit', 'Delete'], true);
-                        } else {
-                            secondaryGrid.obj.toolbarModule.enableItems(['Edit', 'Delete'], false);
-                        }
-                    },
-                    rowDeselected: () => {
-                        if (secondaryGrid.obj.getSelectedRecords().length == 1) {
-                            secondaryGrid.obj.toolbarModule.enableItems(['Edit', 'Delete'], true);
-                        } else {
-                            secondaryGrid.obj.toolbarModule.enableItems(['Edit', 'Delete'], false);
-                        }
-                    },
-                    rowSelecting: () => {
-                        if (secondaryGrid.obj.getSelectedRecords().length) {
-                            secondaryGrid.obj.clearSelection();
-                        }
-                    },
-                    actionComplete: async (args) => {
-                        if (args.requestType === 'save' && args.action === 'add') {
-                            console.log(state);
-                            const response = await services.createSecondaryData(
-                                args.data.name, args.data.jobTitle, args.data.phoneNumber, args.data.emailAddress, args.data.description, state.id, StorageManager.getUserId()
-                            );
-                            await methods.populateSecondaryData(state.id);
-                            secondaryGrid.refresh();
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Save Successful',
-                                timer: 2000,
-                                showConfirmButton: false
-                            });
-                        }
-                        if (args.requestType === 'save' && args.action === 'edit') {
-                            const response = await services.updateSecondaryData(
-                                args.data.id, args.data.name, args.data.jobTitle, args.data.phoneNumber, args.data.emailAddress, args.data.description, state.id, StorageManager.getUserId()
-                            );
-                            await methods.populateSecondaryData(state.id);
-                            secondaryGrid.refresh();
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Update Successful',
-                                timer: 2000,
-                                showConfirmButton: false
-                            });
-                        }
-                        if (args.requestType === 'delete') {
-                            const response = await services.deleteSecondaryData(
-                                args.data[0].id, StorageManager.getUserId()
-                            );
-                            await methods.populateSecondaryData(state.id);
-                            secondaryGrid.refresh();
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Delete Successful',
-                                timer: 2000,
-                                showConfirmButton: false
-                            });
-                        }
-                    }
-                });
-                secondaryGrid.obj.appendTo(secondaryGridRef.value);
-            },
-            refresh: () => {
-                secondaryGrid.obj.setProperties({ dataSource: state.secondaryData });
-            }
-        };
-
         Vue.onMounted(async () => {
             try {
                 await SecurityManager.authorizePage(['Customers']);
@@ -1027,34 +573,18 @@
 
                 await methods.populateMainData();
                 await mainGrid.create(state.mainData);
-             //   await methods.populateCustomerGroupListLookupData();
-                customerGroupListLookup.create();
-             //   await methods.populateCustomerCategoryListLookupData();
-                customerCategoryListLookup.create();
-                nameText.create();
-                numberText.create();
-                streetText.create();
-                cityText.create();
-                stateText.create();
-                zipCodeText.create();
-                countryText.create();
-                phoneNumberText.create();
-                faxNumberText.create();
-                emailAddressText.create();
-                websiteText.create();
-                whatsAppText.create();
-                linkedInText.create();
-                facebookText.create();
-                instagramText.create();
-                twitterXText.create();
-                tikTokText.create();
+
                 mainModal.create();
                 manageContactModal.create();
-                secondaryGrid.create([]);
+
+                // Initialize text boxes
+                nameText.create();
+                numberText.create();
+                phoneNumberText.create();
+                taxRegistrationNumberText.create();
+
             } catch (e) {
                 console.error('page init error:', e);
-            } finally {
-                
             }
         });
 
@@ -1065,23 +595,8 @@
             secondaryGridRef,
             nameRef,
             numberRef,
-            streetRef,
-            cityRef,
-            stateRef,
-            zipCodeRef,
-            countryRef,
             phoneNumberRef,
-            faxNumberRef,
-            emailAddressRef,
-            websiteRef,
-            whatsAppRef,
-            linkedInRef,
-            facebookRef,
-            instagramRef,
-            twitterXRef,
-            tikTokRef,
-            customerGroupIdRef,
-            customerCategoryIdRef,
+            taxRegistrationNumberRef,
             state,
             handler,
         };

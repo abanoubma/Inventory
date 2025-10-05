@@ -21,7 +21,7 @@ public class UpdateCustomerRequest : IRequest<UpdateCustomerResult>
     //public string? ZipCode { get; set; }
     //public string? Country { get; set; }
     public string? PhoneNumber { get; set; }
-    public string? FaxNumber { get; set; }
+    public string? TaxRegistrationNumber { get; set; }
     //public string? EmailAddress { get; set; }
     //public string? Website { get; set; }
     //public string? WhatsApp { get; set; }
@@ -69,7 +69,6 @@ public class UpdateCustomerHandler : IRequestHandler<UpdateCustomerRequest, Upda
 
     public async Task<UpdateCustomerResult> Handle(UpdateCustomerRequest request, CancellationToken cancellationToken)
     {
-
         var entity = await _repository.GetAsync(request.Id ?? string.Empty, cancellationToken);
 
         if (entity == null)
@@ -81,23 +80,8 @@ public class UpdateCustomerHandler : IRequestHandler<UpdateCustomerRequest, Upda
 
         entity.Name = request.Name;
         entity.Description = request.Description;
-        //entity.Street = request.Street;
-        //entity.City = request.City;
-        //entity.State = request.State;
-        //entity.ZipCode = request.ZipCode;
-        //entity.Country = request.Country;
         entity.PhoneNumber = request.PhoneNumber;
-        entity.FaxNumber = request.FaxNumber;
-        //entity.EmailAddress = request.EmailAddress;
-        //entity.Website = request.Website;
-        //entity.WhatsApp = request.WhatsApp;
-        //entity.LinkedIn = request.LinkedIn;
-        //entity.Facebook = request.Facebook;
-        //entity.Instagram = request.Instagram;
-        //entity.TwitterX = request.TwitterX;
-        //entity.TikTok = request.TikTok;
-        //entity.CustomerGroupId = request.CustomerGroupId;
-        //entity.CustomerCategoryId = request.CustomerCategoryId;
+        entity.TaxRegistrationNumber = request.TaxRegistrationNumber; // Make sure this line exists
 
         _repository.Update(entity);
         await _unitOfWork.SaveAsync(cancellationToken);

@@ -21,7 +21,7 @@ public class CreateVendorRequest : IRequest<CreateVendorResult>
     //public string? ZipCode { get; set; }
     //public string? Country { get; set; }
     public string? PhoneNumber { get; set; }
-    public string? FaxNumber { get; set; }
+    public string? TaxRegistrationNumber { get; set; }
     //public string? EmailAddress { get; set; }
     //public string? Website { get; set; }
     //public string? WhatsApp { get; set; }
@@ -82,7 +82,7 @@ public class CreateVendorHandler : IRequestHandler<CreateVendorRequest, CreateVe
         //entity.ZipCode = request.ZipCode;
         //entity.Country = request.Country;
         entity.PhoneNumber = request.PhoneNumber;
-        entity.FaxNumber = request.FaxNumber;
+        entity.TaxRegistrationNumber = request.TaxRegistrationNumber;
         //entity.EmailAddress = request.EmailAddress;
         //entity.Website = request.Website;
         //entity.WhatsApp = request.WhatsApp;
