@@ -1,28 +1,16 @@
-﻿<!-- Google Font: Source Sans Pro -->
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
-<!-- Font Awesome -->
+﻿<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
 <link rel="stylesheet" href="~/adminlte/plugins/fontawesome-free/css/all.min.css">
-<!-- Theme style -->
 <link rel="stylesheet" href="~/adminlte/css/adminlte.min.css">
-
-
 <link href="~/lib/syncfusion/css/bootstrap5.css" rel="stylesheet" />
 <script src="~/lib/syncfusion/js/ej2.min.js"></script>
-
 <link href="~/lib/font-awesome/css/all.min.css" rel="stylesheet">
 <link href="~/lib/bootstrap/dist/css/bootstrap-icons.css" rel="stylesheet">
 <link href="~/lib/dropzone/dropzone.min.css" rel="stylesheet">
-
-
 <style>
-    /* CUSTOM */
-
-    /*Form Group*/
     .form-group {
         margin-top: 10px;
     }
 
-    /* For Syncfusion Grid */
     .grid-container .e-gridcontent {
         cursor: pointer;
     }
@@ -110,8 +98,6 @@
         font-size: 14px;
     }
 
-
-
     .e-dropdownbase .e-list-item.e-item-focus, .e-dropdownbase .e-list-item.e-active, .e-dropdownbase .e-list-item.e-active.e-hover, .e-dropdownbase .e-list-item.e-hover {
         background-color: var(--primary);
         color: #fff;
@@ -119,82 +105,6 @@
 
     .e-schedule .e-timeline-view .e-appointment, .e-schedule .e-timeline-month-view .e-appointment {
         cursor: pointer;
-    }
-
-    .e-schedule .e-agenda-view .e-appointment {
-        border-left: 0px solid var(--primary);
-        cursor: pointer;
-    }
-
-    .e-quick-popup-wrapper .e-event-popup .e-popup-header .e-subject-wrap .e-subject {
-        border-left: 6px solid var(--primary);
-    }
-
-    .e-btn.e-primary, .e-css.e-btn.e-primary {
-        background-color: var(--primary);
-        border-color: var(--primary);
-        color: #fff;
-    }
-
-    .e-footer-content .e-btn.e-primary.e-flat:not([DISABLED]) {
-        background-color: var(--primary);
-        border-color: var(--primary);
-        color: #fff;
-    }
-
-    /*BS Navbar*/
-
-
-    .nav-tabs .nav-item .nav-link {
-        font-size: 0.9rem;
-        padding: 0.3rem 0.5rem;
-    }
-
-    .e-input-group, .e-input-group.e-control-wrapper {
-        border-radius: 0px;
-    }
-
-        .e-input-group.e-control-wrapper.e-disabled input.e-input {
-            background: var(--light);
-        }
-
-    /* Fieldset */
-    fieldset {
-        background-color: #fff;
-        width: 100%;
-        padding: 15px;
-        margin-left: 0px;
-        margin-right: 0px;
-        margin-top: 10px;
-        margin-bottom: 10px;
-        border: 1px solid #dee2e6;
-    }
-
-
-    /* For FormCard */
-    .form-card {
-        border: 1px solid #dee2e6;
-        width: 100%;
-        overflow-y: auto;
-    }
-
-
-
-    .form-card-header {
-        background-color: #ffffff;
-        color: #000000;
-        padding: 10px;
-        border-top-left-radius: 5px;
-        border-top-right-radius: 5px;
-        text-align: left;
-    }
-
-    .form-card-body {
-        background-color: #ffffff;
-        padding-top: 5px;
-        padding-right: 0;
-        padding-bottom: 5px;
-        padding-left: 0px;
     }
 
     .form-card-footer {
@@ -217,8 +127,6 @@
     .form-group {
         margin-top: 0px;
     }
-
-
 
     .sticky-top {
         z-index: 900 !important;
@@ -253,11 +161,6 @@
             border-bottom: 1px solid #dee2e6;
         }
 
-
-
-</style>
-<style>
-    /* CSS scrollbar sidebar */
     #navbarnav::-webkit-scrollbar {
         width: 12px;
     }
@@ -278,9 +181,6 @@
             background-color: var(--dark);
         }
 
-</style>
-<style>
-    /* CSS scrollbar other */
     ::-webkit-scrollbar {
         width: 12px;
         height: 12px;
@@ -302,8 +202,6 @@
             background-color: var(--primary);
         }
 
-</style>
-<style>
     #navbarnav {
         width: 250px;
         height: 70vh;
@@ -327,11 +225,7 @@
         --bs-blue: #1b84ff;
         --bs-primary: #1b84ff;
     }
-</style>
 
-
-@* smaller form *@
-<style>
     .select2-container--bootstrap-5 .select2-results__option {
         font-size: 0.9rem !important;
         line-height: 1.5 !important;
@@ -366,9 +260,60 @@
     .card-body {
         padding: 0.75rem;
     }
-
 </style>
+@using System.Globalization
+@if (CultureInfo.CurrentCulture.TextInfo.IsRightToLeft)
+{
+    <style>
+        body.rtl {
+            direction: rtl;
+            text-align: right;
+        }
 
+        .float-left {
+            float: right !important;
+        }
 
+        .float-right {
+            float: left !important;
+        }
 
+        .text-left {
+            text-align: right !important;
+        }
 
+        .text-right {
+            text-align: left !important;
+        }
+
+        .main-sidebar {
+            left: auto;
+            right: 0;
+        }
+
+        .content-wrapper {
+            margin-left: auto;
+            margin-right: 250px;
+        }
+
+        .e-grid .e-headertext {
+            padding-right: 5px;
+            padding-left: 0;
+        }
+
+        .form-card-footer {
+            text-align: right;
+        }
+
+        .small-italic-left {
+            text-align: right;
+            margin-right: 0px;
+            margin-left: auto;
+        }
+
+        .small-italic::after {
+            left: auto;
+            right: 0;
+        }
+    </style>
+}

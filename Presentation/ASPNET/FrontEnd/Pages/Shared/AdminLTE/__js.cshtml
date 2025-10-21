@@ -1,12 +1,7 @@
-﻿<!-- jQuery -->
+﻿@using System.Globalization
 <script src="~/adminlte/plugins/jquery/jquery.min.js"></script>
-<!-- Bootstrap 4 -->
 <script src="~/adminlte/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
-<!-- AdminLTE App -->
 <script src="~/adminlte/js/adminlte.min.js"></script>
-
-
-<!-- JavaScript Libraries -->
 <script src="~/lib/bootstrap/dist/js/bootstrap.min.js"></script>
 <script src="~/lib/axios/axios.min.js"></script>
 <script src="~/lib/sweetalert/sweetalert2v11.js"></script>
@@ -18,11 +13,7 @@
 <script src="~/lib/indotalent/date-format-manager.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-
 <script>
-
-    // Sidebar Toggler
     document.addEventListener('DOMContentLoaded', function() {
         const sidebarToggler = document.querySelector('.sidebar-toggler');
         if (sidebarToggler) {
@@ -33,16 +24,12 @@
             });
         }
     });
-
     var hideSpinnerAndShowContent = () => {
         const spinner = document.getElementById('spinner');
         if (spinner) {
             spinner.classList.remove('show');
         }
     }
-
-
-
     window.addEventListener('load', function () {
         var formcard = document.getElementById('formcard');
         if (formcard) {
@@ -57,19 +44,14 @@
             sessionStorage.setItem('formcardPosition', 0);
         }
     });
-
     window.addEventListener('beforeunload', () => {
         var formcard = document.getElementById('formcard');
         if (formcard) {
             sessionStorage.setItem('formcardPosition', formcard.scrollTop);
         }
     });
-
 </script>
-
 <script>
-    // for maintaining sidebar scroll position
-
     document.addEventListener('DOMContentLoaded', function () {
         var sidebar = document.getElementById('navbarnav');
         if (sidebar) {
@@ -80,22 +62,18 @@
                     sessionStorage.removeItem('sidebarScrollPosition');
                 }, 0);
             }
-
             sidebar.addEventListener('scroll', function () {
                 sessionStorage.setItem('sidebarScrollPosition', sidebar.scrollTop);
             });
         }
     });
-
     window.addEventListener('beforeunload', () => {
         var sidebar = document.getElementById('navbarnav');
         if (sidebar) {
             sessionStorage.setItem('sidebarScrollPosition', sidebar.scrollTop);
         }
     });
-
 </script>
-
 <script>
     function showStatusMessage(statusMessage) {
         if (statusMessage && statusMessage.includes("Error")) {
@@ -115,12 +93,16 @@
         }
     }
 </script>
-
 <script>
     function formatNumberToN2(number) {
-        return Number(number).toLocaleString(undefined, {
+        return Number(number).toLocaleString('@CultureInfo.CurrentCulture.Name', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
         });
+    }
+</script>
+<script>
+    if (@(CultureInfo.CurrentCulture.TextInfo.IsRightToLeft.ToString().ToLower())) {
+        ej.base.enableRtl(true);
     }
 </script>

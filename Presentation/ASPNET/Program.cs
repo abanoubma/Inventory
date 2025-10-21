@@ -2,6 +2,8 @@ using ASPNET.BackEnd;
 using ASPNET.BackEnd.Common.Middlewares;
 using ASPNET.FrontEnd;
 using ETA.eReceipt.IntegrationToolkit;
+using Microsoft.AspNetCore.Localization;
+using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +16,27 @@ if (!Directory.Exists(logPath))
 
 builder.Services.AddBackEndServices(builder.Configuration);
 builder.Services.AddFrontEndServices();
+
+// Add localization services
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+
+// Add request localization (auto-detect from Accept-Language header or query param ?culture=en or ?culture=ar)
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    var supportedCultures = new[]
+    {
+        new CultureInfo("en-US"), // English
+        new CultureInfo("ar-EG")  // Arabic (Egypt)
+    };
+    options.DefaultRequestCulture = new RequestCulture("en-US");
+    options.SupportedCultures = supportedCultures;
+    options.SupportedUICultures = supportedCultures;
+    options.RequestCultureProviders = new List<IRequestCultureProvider>
+    {
+        new QueryStringRequestCultureProvider(), // ?culture=ar
+        new AcceptLanguageHeaderRequestCultureProvider() // Browser header
+    };
+});
 
 var app = builder.Build();
 
@@ -50,5 +73,8 @@ app.MapBackEndRoutes();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+// Enable localization middleware
+app.UseRequestLocalization();
 
 app.Run();

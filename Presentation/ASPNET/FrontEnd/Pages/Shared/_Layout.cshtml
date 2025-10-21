@@ -1,22 +1,20 @@
-﻿<!DOCTYPE html>
-<html lang="en">
-
+﻿@using ASPNET.Resources
+@using Microsoft.Extensions.Localization
+@using System.Globalization
+@inject IStringLocalizer<SharedResource> Localizer
+<!DOCTYPE html>
+<html lang="@CultureInfo.CurrentCulture.Name" dir="@(CultureInfo.CurrentCulture.TextInfo.IsRightToLeft ? "rtl" : "ltr")">
 <head>
     <meta charset="utf-8">
-    <title>WHMS - .NET 9 - Warehouse & Inventory Management System</title>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@Localizer["AppTitle"]</title>
     <meta content="" name="keywords">
     <meta content="" name="description">
-
-
     @await Html.PartialAsync("__css")
     @await RenderSectionAsync("Styles", required: false)
 </head>
-
-<body>
+<body class="@(CultureInfo.CurrentCulture.TextInfo.IsRightToLeft ? "rtl" : "")">
     @RenderBody()
-
     @await RenderSectionAsync("Scripts", required: false)
 </body>
-
 </html>
