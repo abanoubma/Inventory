@@ -2,6 +2,7 @@
 using Application.Features.NumberSequenceManager;
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using System.Text.RegularExpressions;
 
 namespace Infrastructure.SeedManager.Demos;
 
@@ -31,14 +32,21 @@ public class VendorSeeder
     public async Task GenerateDataAsync()
     {
         var groups = (await _groupRepository.GetQuery().ToListAsync()).Select(x => x.Id).ToArray();
-        var categories = (await _categoryRepository.GetQuery().ToListAsync()).Select(x => x.Id).ToArray();
-        var cities = new string[] { "New York", "Los Angeles", "San Francisco", "Chicago" };
-        var streets = new string[] { "Main Street", "Broadway", "Elm Street", "Maple Avenue" };
-        var states = new string[] { "NY", "CA", "IL", "TX" };
-        var zipCodes = new string[] { "10001", "90001", "60601", "73301" };
-        var phoneNumbers = new string[] { "123-456-7890", "987-654-3210", "555-123-4567", "111-222-3333" };
-        var emails = new string[] { "vendor1@example.com", "vendor2@example.com", "vendor3@example.com", "vendor4@example.com" };
 
+        // Demo location identifiers/names for seeding. Replace with real location ids if available.
+        var countries = new string[] { "EG", "US", "AE", "SA" };
+        var governorates = new string[] { "Cairo", "California", "Dubai", "Riyadh" };
+        var cities = new string[] { "Nasr City", "Los Angeles", "Jumeirah", "Olaya" };
+
+        var streets = new string[] { "Main St", "Broadway", "Market St", "Elm St" };
+        var buildings = new string[] { "1", "2", "10", "25" };
+        var floors = new string[] { "1", "2", "3", "10" };
+        var flats = new string[] { "101", "202", "303", "404" };
+        var postalCodes = new string[] { "10001", "90001", "94101", "60601" };
+        var mobileNumbers = new string[] { "01001112233", "01122334455", "01233445566", "01555666777" };
+
+
+        
         var random = new Random();
 
         var vendors = new List<Vendor>
@@ -67,16 +75,22 @@ public class VendorSeeder
 
         foreach (var vendor in vendors)
         {
-            vendor.Number = _numberSequenceService.GenerateNumber(nameof(Vendor), "", "VND");
-            vendor.VendorGroupId = GetRandomValue(groups, random);
-            vendor.VendorCategoryId = GetRandomValue(categories, random);
-            vendor.City = GetRandomString(cities, random);
-            vendor.Street = GetRandomString(streets, random);
-            vendor.State = GetRandomString(states, random);
-            vendor.ZipCode = GetRandomString(zipCodes, random);
-            vendor.PhoneNumber = GetRandomString(phoneNumbers, random);
-            vendor.EmailAddress = GetRandomString(emails, random);
+            vendor.Number = _numberSequenceService.GenerateNumber(nameof(Vendor), "", "CST");
+            vendor.VendorGroupId = groups.Length > 0 ? groups[random.Next(groups.Length)] : null;
+            vendor.TRN = random.Next(10000000, 99999999).ToString();
 
+            // assign demo location ids/names (adjust to your actual location id scheme)
+            vendor.CountryId = GetRandomString(countries, random);
+            vendor.GovernorateId = GetRandomString(governorates, random);
+            vendor.CityId = GetRandomString(cities, random);
+
+            vendor.BuildingNumber = GetRandomString(buildings, random);
+            vendor.Floor = GetRandomString(floors, random);
+            vendor.FlatNumber = GetRandomString(flats, random);
+            vendor.Street = GetRandomString(streets, random);
+            vendor.PostalCode = GetRandomString(postalCodes, random);
+
+            vendor.Mobile = GetRandomString(mobileNumbers, random);
             await _vendorRepository.CreateAsync(vendor);
         }
 

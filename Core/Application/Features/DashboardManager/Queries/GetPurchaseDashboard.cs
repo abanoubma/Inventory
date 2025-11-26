@@ -68,31 +68,6 @@ public class GetPurchaseDashboardHandler : IRequestHandler<GetPurchaseDashboardR
                 Quantity = g.Sum(x => x.Quantity)
             })
             .ToList();
-
-        var purchaseByVendorCategoryDate = _context.PurchaseOrderItem
-            .AsNoTracking()
-            .ApplyIsDeletedFilter(false)
-            .Include(x => x.PurchaseOrder)
-                .ThenInclude(x => x!.Vendor)
-                    .ThenInclude(x => x!.VendorCategory)
-            .Include(x => x.Product)
-            .Where(x => x.Product!.Physical == true)
-            .Select(x => new
-            {
-                Status = x.PurchaseOrder!.OrderStatus,
-                VendorCategoryName = x.PurchaseOrder!.Vendor!.VendorCategory!.Name,
-                Quantity = x.Quantity
-            })
-            .GroupBy(x => new { x.Status, x.VendorCategoryName })
-            .Select(g => new
-            {
-                Status = g.Key.Status,
-                VendorCategoryName = g.Key.VendorCategoryName,
-                Quantity = g.Sum(x => x.Quantity)
-            })
-            .ToList();
-
-
         var result = new GetPurchaseDashboardResult
         {
             Data = new GetPurchaseDashboardDto
@@ -118,29 +93,7 @@ public class GetPurchaseDashboardHandler : IRequestHandler<GetPurchaseDashboardR
                                 TooltipMappingName = x.VendorGroupName ?? "",
                                 Y = (int)x.Quantity!.Value
                             }).ToList()
-                    })
-                    .ToList(),
-                PurchaseByVendorCategoryDashboard =
-                    Enum.GetValues(typeof(PurchaseOrderStatus))
-                    .Cast<PurchaseOrderStatus>()
-                    .Select(status => new BarSeries
-                    {
-                        Type = "Column",
-                        XName = "x",
-                        Width = 2,
-                        YName = "y",
-                        Name = Enum.GetName(typeof(PurchaseOrderStatus), status)!,
-                        ColumnSpacing = 0.1,
-                        TooltipMappingName = "tooltipMappingName",
-                        DataSource = purchaseByVendorCategoryDate
-                            .Where(x => x.Status == status)
-                            .Select(x => new BarDataItem
-                            {
-                                X = x.VendorCategoryName ?? "",
-                                TooltipMappingName = x.VendorCategoryName ?? "",
-                                Y = (int)x.Quantity!.Value
-                            }).ToList()
-                    })
+                    })                  
                     .ToList(),
             }
         };

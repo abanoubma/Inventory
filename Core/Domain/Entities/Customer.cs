@@ -2,30 +2,31 @@
 
 namespace Domain.Entities;
 
-
 public class Customer : BaseEntity
 {
+    // Basic
     public string? Name { get; set; }
-    public string? Number { get; set; }
-    public string? Description { get; set; }
+    public string? Number { get; set; }          // generated sequence
+    public string? TRN { get; set; }             // Tax Registration Number
+
+    // Address (hierarchy)
+    public string? CountryId { get; set; }       // dropdown
+    public string? GovernorateId { get; set; }   // filtered by CountryId
+    public string? CityId { get; set; }          // filtered by GovernorateId
+
+    public string? BuildingNumber { get; set; }
+    public string? Floor { get; set; }
+    public string? FlatNumber { get; set; }
     public string? Street { get; set; }
-    public string? City { get; set; }
-    public string? State { get; set; }
-    public string? ZipCode { get; set; }
-    public string? Country { get; set; }
-    public string? PhoneNumber { get; set; }
-    public string? FaxNumber { get; set; }
-    public string? EmailAddress { get; set; }
-    public string? Website { get; set; }
-    public string? WhatsApp { get; set; }
-    public string? LinkedIn { get; set; }
-    public string? Facebook { get; set; }
-    public string? Instagram { get; set; }
-    public string? TwitterX { get; set; }
-    public string? TikTok { get; set; }
+    public string? PostalCode { get; set; }
+
+    // Communication
+    public string? Mobile { get; set; }
+
+    // Grouping
     public string? CustomerGroupId { get; set; }
     public CustomerGroup? CustomerGroup { get; set; }
-    public string? CustomerCategoryId { get; set; }
-    public CustomerCategory? CustomerCategory { get; set; }
+
+    // Contacts
     public ICollection<CustomerContact> CustomerContactList { get; set; } = new List<CustomerContact>();
 }

@@ -13,25 +13,20 @@ public class CreateVendorResult
 
 public class CreateVendorRequest : IRequest<CreateVendorResult>
 {
-    public string? Name { get; set; }
-    public string? Description { get; set; }
-    public string? Street { get; set; }
-    public string? City { get; set; }
-    public string? State { get; set; }
-    public string? ZipCode { get; set; }
-    public string? Country { get; set; }
-    public string? PhoneNumber { get; set; }
-    public string? FaxNumber { get; set; }
-    public string? EmailAddress { get; set; }
-    public string? Website { get; set; }
-    public string? WhatsApp { get; set; }
-    public string? LinkedIn { get; set; }
-    public string? Facebook { get; set; }
-    public string? Instagram { get; set; }
-    public string? TwitterX { get; set; }
-    public string? TikTok { get; set; }
     public string? VendorGroupId { get; set; }
-    public string? VendorCategoryId { get; set; }
+    public string? Name { get; set; }
+    public string? TRN { get; set; }
+    // address
+    public string? CountryId { get; set; }
+    public string? GovernorateId { get; set; }
+    public string? CityId { get; set; }
+    public string? BuildingNumber { get; set; }
+    public string? Floor { get; set; }
+    public string? FlatNumber { get; set; }
+    public string? Street { get; set; }
+    public string? PostalCode { get; set; }
+    public string? Mobile { get; set; }
+
     public string? CreatedById { get; init; }
 }
 
@@ -40,14 +35,10 @@ public class CreateVendorValidator : AbstractValidator<CreateVendorRequest>
     public CreateVendorValidator()
     {
         RuleFor(x => x.Name).NotEmpty();
-        RuleFor(x => x.Street).NotEmpty();
-        RuleFor(x => x.City).NotEmpty();
-        RuleFor(x => x.State).NotEmpty();
-        RuleFor(x => x.ZipCode).NotEmpty();
-        RuleFor(x => x.PhoneNumber).NotEmpty();
-        RuleFor(x => x.EmailAddress).NotEmpty();
         RuleFor(x => x.VendorGroupId).NotEmpty();
-        RuleFor(x => x.VendorCategoryId).NotEmpty();
+        RuleFor(x => x.CountryId).NotEmpty();
+        RuleFor(x => x.GovernorateId).NotEmpty();
+        RuleFor(x => x.CityId).NotEmpty();
     }
 }
 
@@ -75,24 +66,16 @@ public class CreateVendorHandler : IRequestHandler<CreateVendorRequest, CreateVe
 
         entity.Name = request.Name;
         entity.Number = _numberSequenceService.GenerateNumber(nameof(Vendor), "", "CST");
-        entity.Description = request.Description;
+        entity.CountryId = request.CountryId;
+        entity.GovernorateId = request.GovernorateId;
+        entity.CityId = request.CityId;
+        entity.BuildingNumber = request.BuildingNumber;
+        entity.Floor = request.Floor;
+        entity.FlatNumber = request.FlatNumber;
         entity.Street = request.Street;
-        entity.City = request.City;
-        entity.State = request.State;
-        entity.ZipCode = request.ZipCode;
-        entity.Country = request.Country;
-        entity.PhoneNumber = request.PhoneNumber;
-        entity.FaxNumber = request.FaxNumber;
-        entity.EmailAddress = request.EmailAddress;
-        entity.Website = request.Website;
-        entity.WhatsApp = request.WhatsApp;
-        entity.LinkedIn = request.LinkedIn;
-        entity.Facebook = request.Facebook;
-        entity.Instagram = request.Instagram;
-        entity.TwitterX = request.TwitterX;
-        entity.TikTok = request.TikTok;
-        entity.VendorGroupId = request.VendorGroupId;
-        entity.VendorCategoryId = request.VendorCategoryId;
+        entity.PostalCode = request.PostalCode;
+
+        entity.Mobile = request.Mobile;
 
         await _repository.CreateAsync(entity, cancellationToken);
         await _unitOfWork.SaveAsync(cancellationToken);
